@@ -15,25 +15,24 @@ abstract class Filter(val context: Context, @RawRes val shader: Int) {
     private var texCoordHandle = 0
     private var posCoordHandle = 0
 
-    fun init() {
-        program = loadProgram(
-            context.resources.openRawResource(shader).reader().readText(),
-            context.resources.openRawResource(R.raw.vertex).reader().readText()
-        )
-        GLES30.glUseProgram(program)
-        texCoordHandle = GLES30.glGetAttribLocation(program, "a_texcoord")
-        posCoordHandle = GLES30.glGetAttribLocation(program, "a_position")
-        bindAttributes()
-    }
-
-
+    /**
+     * Renders the image to the currently bounded FBO
+     */
     fun render(textBuffer: FloatBuffer, posBuffer: FloatBuffer) {
         if ((EGLContext.getEGL() as EGL10).eglGetCurrentContext() == EGL10.EGL_NO_CONTEXT) {
-            throw IllegalStateException("Current thread has no openGL Context attached")
+            return throw IllegalStateException("Current thread has no openGL Context attached")
         }
-        if (program == 0) init()
-
+        if (program == 0) {
+            program = loadProgram(
+                context.resources.openRawResource(shader).reader().readText(),
+                context.resources.openRawResource(R.raw.vertex).reader().readText()
+            )
+            texCoordHandle = GLES30.glGetAttribLocation(program, "a_texcoord")
+            posCoordHandle = GLES30.glGetAttribLocation(program, "a_position")
+            bindAttributes()
+        }
         GLES30.glUseProgram(program)
+        //Puts texture coordinates data into `texCoordHandle (aka a_textcoord)` for this program
         GLES30.glVertexAttribPointer(
             texCoordHandle,
             2,
@@ -44,6 +43,7 @@ abstract class Filter(val context: Context, @RawRes val shader: Int) {
         )
         GLES30.glEnableVertexAttribArray(texCoordHandle)
 
+        //Puts texture coordinates data into `posCoordHandle (aka a_position)` for this program
         GLES30.glVertexAttribPointer(
             posCoordHandle,
             2,

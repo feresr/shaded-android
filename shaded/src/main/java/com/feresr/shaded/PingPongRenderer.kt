@@ -15,7 +15,13 @@ import android.opengl.GLES30.glViewport
 import java.nio.IntBuffer
 import javax.microedition.khronos.opengles.GL10.GL_TEXTURE_2D
 
-internal class Renderer(private val originalTexture: Int, private val width: Int, private val height: Int) {
+/**
+ * This class implements ping-pong rendering between textures for size [width] and [height] starting
+ * off from originalTexture (which can be of any size)
+ */
+internal class PingPongRenderer(private val originalTexture: Int,
+                                private val width: Int,
+                                private val height: Int) {
 
     private val textures = createTextures(2, width, height)
     private val frameBuffers = IntArray(2).also {
@@ -43,11 +49,10 @@ internal class Renderer(private val originalTexture: Int, private val width: Int
     fun render(filters: List<Filter>) {
         glViewport(0, 0, width, height)
         for ((i, filter) in filters.withIndex()) {
-            glBindFramebuffer(GL_FRAMEBUFFER, frameBuffers[i % 2])  //write to
-            glBindTexture(
-                GL_TEXTURE_2D,
-                if (i == 0) originalTexture else textures[i % 2]
-            ) //read from
+            //read from
+            glBindTexture(GL_TEXTURE_2D, if (i == 0) originalTexture else textures[i % 2])
+            //write to
+            glBindFramebuffer(GL_FRAMEBUFFER, frameBuffers[i % 2])
             filter.render(if (i == 0) transformedTextureCords else textBuffer, posBuffer)
             latestFBO = frameBuffers[i % 2]
         }

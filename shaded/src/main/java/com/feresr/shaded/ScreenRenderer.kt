@@ -1,10 +1,14 @@
 package com.feresr.shaded
 
 import android.content.Context
+import android.opengl.GLES20
 import android.opengl.GLES30
 import javax.microedition.khronos.opengles.GL10
 
-internal class MainProgram(private val context: Context) {
+/**
+ * C
+ */
+internal class ScreenRenderer(private val context: Context) {
 
     private val transformedPosVertices = createVerticesBuffer(POS_VERTICES)
     private var transformedTextureCords = createVerticesBuffer(TEX_VERTICES)
@@ -13,19 +17,21 @@ internal class MainProgram(private val context: Context) {
     private var posCoordHandle = 0
     private var texCoordHandle = 0
 
-    fun init() {
-        if (program != 0) return
-        program = loadProgram(
-            context.resources.openRawResource(R.raw.fragment).reader().readText(),
-            context.resources.openRawResource(R.raw.vertex).reader().readText()
-        )
-        GLES30.glUseProgram(program)
-        texCoordHandle = GLES30.glGetAttribLocation(program, "a_texcoord")
-        posCoordHandle = GLES30.glGetAttribLocation(program, "a_position")
-    }
+    fun render(readFromTexture: Int) {
+        if (program == 0) {
+            program = loadProgram(
+                context.resources.openRawResource(R.raw.fragment).reader().readText(),
+                context.resources.openRawResource(R.raw.vertex).reader().readText()
+            )
+            texCoordHandle = GLES30.glGetAttribLocation(program, "a_texcoord")
+            posCoordHandle = GLES30.glGetAttribLocation(program, "a_position")
+        }
 
-    fun render(texture: Int) {
         GLES30.glUseProgram(program)
+
+        // Read from
+        GLES30.glBindTexture(GL10.GL_TEXTURE_2D, readFromTexture)
+        // Draw to the screen (FBO = 0)
         GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0)
 
         GLES30.glVertexAttribPointer(
@@ -46,8 +52,10 @@ internal class MainProgram(private val context: Context) {
             transformedPosVertices
         )
         GLES30.glEnableVertexAttribArray(posCoordHandle)
-        GLES30.glBindTexture(GL10.GL_TEXTURE_2D, texture) //read from
         GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, 4)
+
+        GLES20.glDisableVertexAttribArray(texCoordHandle)
+        GLES20.glDisableVertexAttribArray(posCoordHandle)
     }
 
     companion object {

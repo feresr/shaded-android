@@ -14,27 +14,27 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import javax.microedition.khronos.opengles.GL10.GL_COLOR_BUFFER_BIT
 
-class FilterRenderer(
+class Shaded(
     private val context: Context,
     private val surfaceView: GLSurfaceView,
     private val filters: List<Filter>
 ) : GLSurfaceView.Renderer {
 
-    private var program: MainProgram? = null
-    private var previewRenderer: Renderer? = null
-    private var outputRenderer: Renderer? = null
+    private var screenRenderer: ScreenRenderer? = null
+    private var previewPingPongRenderer: PingPongRenderer? = null
+    private var outputPingPongRenderer: PingPongRenderer? = null
     private var originalTexture: Int = 0
 
     private var bitmapWidth = 0
     private var bitmapHeight = 0
     private var viewportWidth = 0
     private var viewportHeight = 0
-    private val pendingRunnable: Queue<() -> Unit> = LinkedList()
+    private val glEventQueue: Queue<() -> Unit> = LinkedList()
 
     var color: Int = 0
         set(value) {
             field = value
-            surfaceView.requestRender()
+            if (surfaceView.isAttachedToWindow) surfaceView.requestRender()
         }
 
     init {
@@ -61,7 +61,7 @@ class FilterRenderer(
             setEGLContextClientVersion(3)
             setEGLConfigChooser(8, 8, 8, 8, 16, 0)
             holder.setFormat(PixelFormat.RGBA_8888)
-            setRenderer(this@FilterRenderer)
+            setRenderer(this@Shaded)
             renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
         }
     }
@@ -74,20 +74,21 @@ class FilterRenderer(
     }
 
     fun updatePreview() {
-        surfaceView.runOnOpenGLThread {
-            previewRenderer?.render(filters)
-        }
+        glEventQueue.add { previewPingPongRenderer?.render(filters) }
+        if (surfaceView.isAttachedToWindow) surfaceView.requestRender()
     }
 
     fun setBitmap(bitmap: Bitmap) {
-        surfaceView.runOnOpenGLThread {
-            previewRenderer?.delete()
-            outputRenderer?.delete()
+        glEventQueue.add {
+            screenRenderer = ScreenRenderer(context)
+            previewPingPongRenderer?.delete()
+            outputPingPongRenderer?.delete()
             originalTexture = createTexture(bitmap)
             bitmapWidth = bitmap.width
             bitmapHeight = bitmap.height
-            previewRenderer = Renderer(originalTexture, viewportWidth / 2, viewportHeight / 2)
-            outputRenderer = Renderer(originalTexture, bitmapWidth, bitmapHeight)
+            previewPingPongRenderer =
+                PingPongRenderer(originalTexture, viewportWidth / 2, viewportHeight / 2)
+            outputPingPongRenderer = PingPongRenderer(originalTexture, bitmapWidth, bitmapHeight)
             updatePreview()
         }
     }
@@ -95,12 +96,10 @@ class FilterRenderer(
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         GLES30.glDisable(GLES30.GL_BLEND)
         GLES30.glDisable(GLES30.GL_DEPTH_TEST)
-        program = MainProgram(context)
     }
 
     override fun onDrawFrame(unused: GL10) {
-        program?.init()
-        while (pendingRunnable.isNotEmpty()) pendingRunnable.remove().invoke()
+        while (glEventQueue.isNotEmpty()) glEventQueue.remove().invoke()
         GLES30.glClearColor(
             Color.red(color) / 255f,
             Color.green(color) / 255f,
@@ -108,16 +107,15 @@ class FilterRenderer(
             1f
         )
         GLES30.glClear(GL_COLOR_BUFFER_BIT)
-        previewRenderer?.let {
-            GLES30.glViewport(0, 0, viewportWidth, viewportHeight)
-            GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0)
-            program?.render(it.outputTexture)
-        }
+        GLES30.glViewport(0, 0, viewportWidth, viewportHeight)
+
+        val previewOutputTexture = previewPingPongRenderer?.outputTexture ?: return
+        screenRenderer?.render(previewOutputTexture)
     }
 
     fun getBitmap(callback: (Bitmap?) -> Unit) {
-        surfaceView.runOnOpenGLThread {
-            val bitmap = outputRenderer?.renderToBitmap(filters)
+        glEventQueue.add {
+            val bitmap = outputPingPongRenderer?.renderToBitmap(filters)
             callback(bitmap)
         }
     }
@@ -129,24 +127,16 @@ class FilterRenderer(
     }
 
     fun setMatrix(matrix: Matrix) {
-        surfaceView.runOnOpenGLThread {
-            previewRenderer?.setMatrix(matrix)
-            previewRenderer?.render(filters)
+        glEventQueue.add {
+            previewPingPongRenderer?.setMatrix(matrix)
+            previewPingPongRenderer?.render(filters)
         }
+        if (surfaceView.isAttachedToWindow) surfaceView.requestRender()
     }
 
     fun destroy() {
         filters.forEach { it.clear() }
-        previewRenderer?.delete()
-        outputRenderer?.delete()
-    }
-
-    private fun GLSurfaceView.runOnOpenGLThread(block: () -> Unit) {
-        if (program == null) {
-            pendingRunnable.add(block)
-        } else {
-            this.queueEvent(block)
-            surfaceView.requestRender()
-        }
+        previewPingPongRenderer?.delete()
+        outputPingPongRenderer?.delete()
     }
 }
