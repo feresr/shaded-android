@@ -8,6 +8,7 @@ import android.graphics.Matrix
 import android.graphics.PixelFormat
 import android.opengl.GLES30
 import android.opengl.GLSurfaceView
+import android.view.View
 import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
@@ -38,6 +39,24 @@ class FilterRenderer(
 
     init {
         check(supportsOpenGLES(context)) { "OpenGL ES 3.0 is not supported on this phone." }
+        if (surfaceView.isAttachedToWindow) {
+            configureSurfaceView()
+        } else {
+            surfaceView.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+                override fun onViewDetachedFromWindow(v: View?) {
+                    surfaceView.setRenderer(null)
+                    surfaceView.removeOnAttachStateChangeListener(this)
+                }
+
+                override fun onViewAttachedToWindow(v: View?) {
+                    configureSurfaceView()
+                    surfaceView.removeOnAttachStateChangeListener(this)
+                }
+            })
+        }
+    }
+
+    private fun configureSurfaceView() {
         surfaceView.apply {
             setEGLContextClientVersion(3)
             setEGLConfigChooser(8, 8, 8, 8, 16, 0)
