@@ -118,6 +118,7 @@ class Shaded(
             val bitmap = outputPingPongRenderer?.renderToBitmap(filters)
             callback(bitmap)
         }
+        if (surfaceView.isAttachedToWindow) surfaceView.requestRender()
     }
 
     override fun onSurfaceChanged(unused: GL10, width: Int, height: Int) {
