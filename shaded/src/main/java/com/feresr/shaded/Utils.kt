@@ -1,7 +1,6 @@
 package com.feresr.shaded
 
 import android.graphics.Bitmap
-import android.opengl.GLES20
 import android.opengl.GLES30
 import android.opengl.GLU
 import android.opengl.GLUtils
@@ -156,7 +155,7 @@ fun createTexture(bitmap: Bitmap): Int {
     )
 
     GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, texture)
-    GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
+    GLUtils.texImage2D(GLES30.GL_TEXTURE_2D, 0, bitmap, 0)
     return texture
 }
 

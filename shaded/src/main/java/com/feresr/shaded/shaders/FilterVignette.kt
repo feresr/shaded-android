@@ -1,7 +1,6 @@
 package com.feresr.shaded.shaders
 
 import android.content.Context
-import android.opengl.GLES20
 import android.opengl.GLES30
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
@@ -28,12 +27,12 @@ class FilterVignette(context: Context, val config: () -> VignetteConfig) :
         val config = config()
         GLES30.glUniform1f(vignetteStart, config.start)
         GLES30.glUniform1f(vignetteEnd, config.end)
-        GLES20.glUniform2fv(
+        GLES30.glUniform2fv(
             vignetteCenter,
             1,
             FloatBuffer.wrap(floatArrayOf(config.center.first, config.center.second))
         )
-        GLES20.glUniform3fv(
+        GLES30.glUniform3fv(
             vignetteColor,
             1,
             FloatBuffer.wrap(

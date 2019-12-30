@@ -1,7 +1,7 @@
 package com.feresr.shaded.shaders
 
 import android.content.Context
-import android.opengl.GLES20
+import android.opengl.GLES30
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 import java.nio.FloatBuffer
@@ -13,12 +13,12 @@ class FilterBlur(context: Context, val values: () -> Pair<Float, Float>) :
 
     override fun bindAttributes() {
         super.bindAttributes()
-        blurRadius = GLES20.glGetUniformLocation(program, "blurRadius")
+        blurRadius = GLES30.glGetUniformLocation(program, "blurRadius")
     }
 
     override fun setValues() {
         super.setValues()
         val (x, y) = values()
-        GLES20.glUniform2fv(blurRadius, 1, FloatBuffer.wrap(floatArrayOf(x, y)))
+        GLES30.glUniform2fv(blurRadius, 1, FloatBuffer.wrap(floatArrayOf(x, y)))
     }
 }

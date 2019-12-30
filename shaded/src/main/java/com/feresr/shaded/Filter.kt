@@ -1,7 +1,6 @@
 package com.feresr.shaded
 
 import android.content.Context
-import android.opengl.GLES20
 import android.opengl.GLES30
 import androidx.annotation.RawRes
 import java.nio.FloatBuffer
@@ -57,8 +56,8 @@ abstract class Filter(val context: Context, @RawRes val shader: Int) {
         setValues()
         GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, 4)
 
-        GLES20.glDisableVertexAttribArray(texCoordHandle)
-        GLES20.glDisableVertexAttribArray(posCoordHandle)
+        GLES30.glDisableVertexAttribArray(texCoordHandle)
+        GLES30.glDisableVertexAttribArray(posCoordHandle)
     }
 
     protected open fun bindAttributes() {
