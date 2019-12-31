@@ -19,9 +19,11 @@ import javax.microedition.khronos.opengles.GL10.GL_TEXTURE_2D
  * This class implements ping-pong rendering between textures for size [width] and [height] starting
  * off from originalTexture (which can be of any size)
  */
-internal class PingPongRenderer(private val originalTexture: Int,
-                                private val width: Int,
-                                private val height: Int) {
+internal class PingPongRenderer(
+    private val originalTexture: Int,
+    private val width: Int,
+    private val height: Int
+) {
 
     private val textures = createTextures(2, width, height)
     private val frameBuffers = IntArray(2).also {
@@ -63,24 +65,24 @@ internal class PingPongRenderer(private val originalTexture: Int,
 
     fun renderToBitmap(filters: List<Filter>): Bitmap {
         render(filters)
-        val pixels: IntBuffer = IntBuffer.wrap(IntArray(width * height))
         glBindFramebuffer(GL_FRAMEBUFFER, latestFBO)
-        glReadPixels(
-            0, 0,
-            width, height,
-            GL_RGBA, GL_UNSIGNED_BYTE,
-            pixels
-        )
-        val array = pixels.array()
-        for (i in array.indices) { // TODO MAKE THIS A SHADER AND DO THIS IN THE GPU
-            val red = (array[i] shr 0) and 0xff
-            val green = (array[i] shr 8) and 0xff
-            val blue = (array[i] shr 16) and 0xff
-            val alpha = (array[i] shr 24) and 0xff
-            array[i] = (alpha shl 24) or (red shl 16) or ((green) shl 8) or (blue)
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val pixels: IntBuffer = IntBuffer.wrap(IntArray(width))
+
+        for (row in 0 until height) {
+            glReadPixels(0, row, width, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixels)
+            val array = pixels.array()
+            for (i in array.indices) {
+                val red = (array[i] shr 0) and 0xff
+                val green = (array[i] shr 8) and 0xff
+                val blue = (array[i] shr 16) and 0xff
+                val alpha = (array[i] shr 24) and 0xff
+                array[i] = (alpha shl 24) or (red shl 16) or ((green) shl 8) or (blue)
+            }
+            bitmap.setPixels(array, 0, width, 0, row, width, 1)
         }
 
-        return Bitmap.createBitmap(array, width, height, Bitmap.Config.ARGB_8888)
+        return bitmap
     }
 
     fun delete() {

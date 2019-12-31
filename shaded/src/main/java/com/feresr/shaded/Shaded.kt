@@ -10,6 +10,7 @@ import android.opengl.GLES30
 import android.opengl.GLSurfaceView
 import android.view.View
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import javax.microedition.khronos.opengles.GL10.GL_COLOR_BUFFER_BIT
@@ -29,7 +30,7 @@ class Shaded(
     private var bitmapHeight = 0
     private var viewportWidth = 0
     private var viewportHeight = 0
-    private val glEventQueue: Queue<() -> Unit> = LinkedList()
+    private val glEventQueue: Queue<() -> Unit> = ConcurrentLinkedQueue()
 
     var color: Int = 0
         set(value) {
