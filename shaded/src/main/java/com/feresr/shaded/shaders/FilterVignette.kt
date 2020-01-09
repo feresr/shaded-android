@@ -6,7 +6,7 @@ import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 import java.nio.FloatBuffer
 
-class FilterVignette(context: Context, val config: () -> VignetteConfig) :
+class FilterVignette(context: Context, @Volatile var config: VignetteConfig) :
     Filter(context, R.raw.vignette) {
 
     private var vignetteCenter: Int = 0
@@ -24,7 +24,6 @@ class FilterVignette(context: Context, val config: () -> VignetteConfig) :
 
     override fun setValues() {
         super.setValues()
-        val config = config()
         GLES30.glUniform1f(vignetteStart, config.start)
         GLES30.glUniform1f(vignetteEnd, config.end)
         GLES30.glUniform2fv(

@@ -5,8 +5,10 @@ import android.opengl.GLES30
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 
-class FilterBrightness(context: Context, val brightness: () -> Float) :
-    Filter(context, R.raw.brightness) {
+class FilterBrightness(
+    context: Context,
+    @Volatile var brightness: Float = 0f
+) : Filter(context, R.raw.brightness) {
 
     private var value = 0
     override fun bindAttributes() {
@@ -16,6 +18,6 @@ class FilterBrightness(context: Context, val brightness: () -> Float) :
 
     override fun setValues() {
         super.setValues()
-        GLES30.glUniform1f(value, brightness())
+        GLES30.glUniform1f(value, brightness)
     }
 }

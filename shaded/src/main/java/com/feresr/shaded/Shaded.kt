@@ -40,21 +40,7 @@ class Shaded(
 
     init {
         check(supportsOpenGLES(context)) { "OpenGL ES 3.0 is not supported on this phone." }
-        if (surfaceView.isAttachedToWindow) {
-            configureSurfaceView()
-        } else {
-            surfaceView.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-                override fun onViewDetachedFromWindow(v: View?) {
-                    surfaceView.setRenderer(null)
-                    surfaceView.removeOnAttachStateChangeListener(this)
-                }
-
-                override fun onViewAttachedToWindow(v: View?) {
-                    configureSurfaceView()
-                    surfaceView.removeOnAttachStateChangeListener(this)
-                }
-            })
-        }
+        configureSurfaceView()
     }
 
     private fun configureSurfaceView() {

@@ -25,22 +25,20 @@ internal class PingPongRenderer(
     private val height: Int
 ) {
 
+    private val textBuffer = createVerticesBuffer(TEX_COORDS)
+    private val posBuffer = createVerticesBuffer(POS_VERTICES)
     private val textures = createTextures(2, width, height)
     private val frameBuffers = IntArray(2).also {
         glGenFramebuffers(2, it, 0)
         initFrameBufferObject(it[0], textures[1])
         initFrameBufferObject(it[1], textures[0])
     }
-    private val textBuffer = createVerticesBuffer(TEX_COORDS)
-    private val posBuffer = createVerticesBuffer(POS_VERTICES)
-
     private var latestFBO = 0
+    private var transformedTextureCords = createVerticesBuffer(TEX_COORDS)
     var outputTexture = -1
 
-    private var transformedTextureCords = createVerticesBuffer(TEX_COORDS)
-    private val array = FloatArray(8)
-
     fun setMatrix(matrix: Matrix) {
+        val array = FloatArray(8)
         matrix.mapPoints(array, TEX_COORDS)
         transformedTextureCords = createVerticesBuffer(array)
     }

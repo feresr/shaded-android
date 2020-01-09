@@ -6,8 +6,11 @@ import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 import java.nio.FloatBuffer
 
-class FilterBlur(context: Context, val values: () -> Pair<Float, Float>) :
-    Filter(context, R.raw.blur) {
+class FilterBlur(
+    context: Context,
+    @Volatile var x: Float = 0f,
+    @Volatile var y: Float = 0f
+) : Filter(context, R.raw.blur) {
 
     private var blurRadius = 0
 
@@ -18,7 +21,6 @@ class FilterBlur(context: Context, val values: () -> Pair<Float, Float>) :
 
     override fun setValues() {
         super.setValues()
-        val (x, y) = values()
         GLES30.glUniform2fv(blurRadius, 1, FloatBuffer.wrap(floatArrayOf(x, y)))
     }
 }

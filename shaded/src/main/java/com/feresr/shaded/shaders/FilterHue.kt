@@ -5,9 +5,10 @@ import android.opengl.GLES30
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 
-class FilterHue(context: Context, val value: () -> Float) : Filter(context,
-    R.raw.hue
-) {
+class FilterHue(
+    context: Context,
+    @Volatile var value: Float
+) : Filter(context, R.raw.hue) {
     private var hue = 0
     override fun bindAttributes() {
         super.bindAttributes()
@@ -17,6 +18,6 @@ class FilterHue(context: Context, val value: () -> Float) : Filter(context,
 
     override fun setValues() {
         super.setValues()
-        GLES30.glUniform1f(hue, value())
+        GLES30.glUniform1f(hue, value)
     }
 }
