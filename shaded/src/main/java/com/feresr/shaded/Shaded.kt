@@ -8,6 +8,7 @@ import android.graphics.Matrix
 import android.opengl.GLES30
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
+import android.os.Handler
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import javax.microedition.khronos.opengles.GL10.GL_COLOR_BUFFER_BIT
@@ -18,6 +19,7 @@ class Shaded(
     private val filters: List<Filter>
 ) : GLSurfaceView.Renderer {
 
+    private val handler = Handler()
     private var screenRenderer: ScreenRenderer? = null
     private var previewPingPongRenderer: PingPongRenderer? = null
     private var outputPingPongRenderer: PingPongRenderer? = null
@@ -59,6 +61,7 @@ class Shaded(
         this.bitmap = bitmap
         this.downScale = downScale
         surfaceView.queueEvent { loadBitmap(bitmap, downScale) }
+        requestRender()
     }
 
     /**
@@ -111,7 +114,7 @@ class Shaded(
     fun getBitmap(callback: (Bitmap?) -> Unit) {
         surfaceView.queueEvent {
             val bitmap = outputPingPongRenderer?.renderToBitmap(filters)
-            callback(bitmap)
+            handler.post { callback(bitmap) }
         }
         surfaceView.requestRender()
     }

@@ -21,11 +21,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         //val filterBrightness = FilterBrightness(this, cos(0f).toFloat())
-        val filterHue = FilterHue(this, sin(0f * 1.2f).toFloat())
+        val filterHue = FilterHue(this, sin(0f * 1.2f))
 
         val renderer = Shaded(this, surfaceview, listOf(filterHue))
         renderer.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.ducks), 1)
-        renderer.requestRender()
 
         seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -40,12 +39,7 @@ class MainActivity : AppCompatActivity() {
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 renderer.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.ducks), 1)
-                renderer.requestRender()
-
-                renderer.getBitmap {
-                    //result.setImageBitmap(it!!)
-                }
-
+                renderer.getBitmap { result.setImageBitmap(it!!) }
             }
 
         })
