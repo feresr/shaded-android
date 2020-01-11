@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         val hue = FilterHue(this, sin(0f))
 
         val renderer = Shaded(this, surfaceview, listOf(contrast, hue))
-        renderer.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.ducks), 1)
+        renderer.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.ducks))
 
         seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {

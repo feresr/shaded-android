@@ -56,10 +56,9 @@ class Shaded(
         surfaceView.requestRender()
     }
 
-    fun setBitmap(bitmap: Bitmap, downScale: Int = 1) {
+    fun setBitmap(bitmap: Bitmap) {
         this.bitmap = bitmap
-        this.downScale = downScale
-        surfaceView.queueEvent { loadBitmap(bitmap, downScale) }
+        surfaceView.queueEvent { loadBitmap(bitmap) }
         requestPreviewRender()
     }
 
@@ -73,7 +72,7 @@ class Shaded(
      */
     fun downScale(downScale: Int) {
         this.downScale = downScale
-        surfaceView.queueEvent { loadBitmap(bitmap, downScale) }
+        surfaceView.queueEvent { loadBitmap(bitmap) }
         requestPreviewRender()
     }
 
@@ -87,7 +86,7 @@ class Shaded(
      *
      * This is meant to be called on a thread with an OpenGL context attached.
      */
-    private fun loadBitmap(bitmap: Bitmap?, downScale: Int = 1) {
+    private fun loadBitmap(bitmap: Bitmap?) {
         if (bitmap == null) return
         GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, originalTexture)
         GLUtils.texImage2D(GLES30.GL_TEXTURE_2D, 0, bitmap, 0)
@@ -104,7 +103,7 @@ class Shaded(
         screenRenderer = ScreenRenderer(context)
         originalTexture = createTexture()
         previewPingPongRenderer = PingPongRenderer(originalTexture)
-        loadBitmap(bitmap, downScale)
+        loadBitmap(bitmap)
         previewPingPongRenderer?.render(filters)
     }
 
@@ -133,9 +132,9 @@ class Shaded(
      */
     fun getBitmap(callback: (Bitmap?) -> Unit) {
         surfaceView.queueEvent {
-            loadBitmap(bitmap, 1)
+            downScale(1)
             val bitmap = previewPingPongRenderer?.renderToBitmap(filters)
-            loadBitmap(bitmap, downScale)
+            downScale(downScale)
             handler.post { callback(bitmap) }
         }
         surfaceView.requestRender()
