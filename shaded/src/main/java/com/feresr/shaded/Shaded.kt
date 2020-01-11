@@ -64,13 +64,30 @@ class Shaded(
         requestRender()
     }
 
+    fun setMatrix(matrix: Matrix) {
+        surfaceView.queueEvent {
+            previewPingPongRenderer?.setMatrix(matrix)
+            previewPingPongRenderer?.render(filters)
+        }
+        if (surfaceView.isAttachedToWindow) surfaceView.requestRender()
+    }
+
+    /**
+     * Downscaling allows for faster rendering
+     */
+    fun downScale(downScale: Int) {
+        this.downScale = downScale
+        surfaceView.queueEvent { loadBitmap(bitmap, downScale) }
+        requestRender()
+    }
+
     /**
      * Loads the bitmap data into OpenGL texture [originalTexture]
-     * Loads the bitmap data into the internal [PingPongRenderer] textures with new dimensions
+     * Loads the bitmap data into the internal preview [PingPongRenderer]s.
      *
      * @param bitmap the bitmap to be loaded
-     * @param downScale how much to reduce the size for the preview, this results in better
-     * performance. ([getBitmap] always returns the original bitmap size)
+     * @param downScale downsamples the image size for better performance.
+     * ([getBitmap] is not affected by this and will always returns the original bitmap size.
      *
      * This is meant to be called on a thread with an OpenGL context attached.
      */
@@ -111,26 +128,21 @@ class Shaded(
         screenRenderer?.render(previewOutputTexture)
     }
 
-    fun getBitmap(callback: (Bitmap?) -> Unit) {
-        surfaceView.queueEvent {
-            val bitmap = outputPingPongRenderer?.renderToBitmap(filters)
-            handler.post { callback(bitmap) }
-        }
-        surfaceView.requestRender()
-    }
-
     override fun onSurfaceChanged(unused: GL10, width: Int, height: Int) {
         GLES30.glViewport(0, 0, width, height)
         viewportWidth = width
         viewportHeight = height
     }
 
-    fun setMatrix(matrix: Matrix) {
+    /**
+     * Renders the currently set bitmap, if previously set
+     */
+    fun getBitmap(callback: (Bitmap?) -> Unit) {
         surfaceView.queueEvent {
-            previewPingPongRenderer?.setMatrix(matrix)
-            previewPingPongRenderer?.render(filters)
+            val bitmap = outputPingPongRenderer?.renderToBitmap(filters)
+            handler.post { callback(bitmap) }
         }
-        if (surfaceView.isAttachedToWindow) surfaceView.requestRender()
+        surfaceView.requestRender()
     }
 
     fun destroy() {

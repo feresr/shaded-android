@@ -34,14 +34,13 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                renderer.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.ducks), 20)
+                renderer.downScale(20) //optional
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                renderer.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.ducks), 1)
-                renderer.getBitmap { result.setImageBitmap(it!!) }
+                renderer.downScale(1)
+                renderer.getBitmap { result.setImageBitmap(it) }
             }
-
         })
     }
 
