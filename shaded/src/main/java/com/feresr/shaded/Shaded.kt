@@ -22,7 +22,6 @@ class Shaded(
     private val handler = Handler()
     private var screenRenderer: ScreenRenderer? = null
     private var previewPingPongRenderer: PingPongRenderer? = null
-    private var outputPingPongRenderer: PingPongRenderer? = null
     private var originalTexture: Int = 0
     private var bitmap: Bitmap? = null
     private var downScale: Int = 1
@@ -99,7 +98,6 @@ class Shaded(
         val previewWidth = bitmap.width / downScale
         val previewHeight = bitmap.height / downScale
         previewPingPongRenderer?.initTextures(previewWidth, previewHeight)
-        outputPingPongRenderer?.initTextures(bitmap.width, bitmap.height)
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
@@ -109,7 +107,6 @@ class Shaded(
         screenRenderer = ScreenRenderer(context)
         originalTexture = createTexture()
         previewPingPongRenderer = PingPongRenderer(originalTexture)
-        outputPingPongRenderer = PingPongRenderer(originalTexture)
         loadBitmap(bitmap, downScale)
         previewPingPongRenderer?.render(filters)
     }
@@ -139,7 +136,9 @@ class Shaded(
      */
     fun getBitmap(callback: (Bitmap?) -> Unit) {
         surfaceView.queueEvent {
-            val bitmap = outputPingPongRenderer?.renderToBitmap(filters)
+            loadBitmap(bitmap, 1)
+            val bitmap = previewPingPongRenderer?.renderToBitmap(filters)
+            loadBitmap(bitmap, downScale)
             handler.post { callback(bitmap) }
         }
         surfaceView.requestRender()
@@ -147,6 +146,5 @@ class Shaded(
 
     fun destroy() {
         previewPingPongRenderer?.delete()
-        outputPingPongRenderer?.delete()
     }
 }
