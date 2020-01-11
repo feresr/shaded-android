@@ -8,6 +8,8 @@ import android.util.Log
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import javax.microedition.khronos.egl.EGL10
+import javax.microedition.khronos.egl.EGLContext
 import javax.microedition.khronos.opengles.GL10
 
 internal fun loadProgram(fragmentShader: String, vertexShader: String): Int {
@@ -71,10 +73,7 @@ internal fun createVerticesBuffer(vertices: FloatArray): FloatBuffer {
     return buffer
 }
 
-internal fun createTextures(n: Int, width: Int, height: Int): IntArray {
-    if (width <= 0 || height <= 0) {
-        throw RuntimeException("Invalid texture size width & height must be >0: [$width, $height]")
-    }
+internal fun createTextures(n: Int): IntArray {
     val textures = IntArray(n)
     GLES30.glGenTextures(n, textures, 0)
     val glError = GLES30.glGetError()
@@ -101,25 +100,11 @@ internal fun createTextures(n: Int, width: Int, height: Int): IntArray {
             GLES30.GL_TEXTURE_WRAP_T,
             GLES30.GL_CLAMP_TO_EDGE
         )
-
-        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, texture)
-
-        GLES30.glTexImage2D(
-            GLES30.GL_TEXTURE_2D,
-            0,
-            GLES30.GL_RGBA,
-            width,
-            height,
-            0,
-            GLES30.GL_RGBA,
-            GLES30.GL_UNSIGNED_BYTE,
-            null
-        )
     }
     return textures
 }
 
-fun createTexture(bitmap: Bitmap): Int {
+fun createTexture(): Int {
     val textureHandle = IntArray(1)
     GLES30.glGenTextures(1, textureHandle, 0)
 
@@ -153,15 +138,12 @@ fun createTexture(bitmap: Bitmap): Int {
         GLES30.GL_TEXTURE_WRAP_T,
         GLES30.GL_CLAMP_TO_EDGE
     )
-
-    GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, texture)
-    GLUtils.texImage2D(GLES30.GL_TEXTURE_2D, 0, bitmap, 0)
     return texture
 }
 
 internal fun initFrameBufferObject(framebuffer: Int, texture: Int) {
     GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, framebuffer)
-    //write to this texture
+    // Write to this texture
     GLES30.glFramebufferTexture2D(
         GLES30.GL_FRAMEBUFFER,
         GLES30.GL_COLOR_ATTACHMENT0,
@@ -169,7 +151,6 @@ internal fun initFrameBufferObject(framebuffer: Int, texture: Int) {
         texture,
         0
     )
-    GLES30.glDisable(GL10.GL_DEPTH_TEST)
     if (GLES30.glCheckFramebufferStatus(GLES30.GL_FRAMEBUFFER) != GLES30.GL_FRAMEBUFFER_COMPLETE) {
         val glError = GLES30.glGetError()
         throw RuntimeException(

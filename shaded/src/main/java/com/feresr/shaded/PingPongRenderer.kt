@@ -2,16 +2,9 @@ package com.feresr.shaded
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
-import android.opengl.GLES30.GL_FRAMEBUFFER
-import android.opengl.GLES30.GL_RGBA
-import android.opengl.GLES30.GL_UNSIGNED_BYTE
-import android.opengl.GLES30.glBindFramebuffer
-import android.opengl.GLES30.glBindTexture
-import android.opengl.GLES30.glDeleteFramebuffers
-import android.opengl.GLES30.glDeleteTextures
-import android.opengl.GLES30.glGenFramebuffers
-import android.opengl.GLES30.glReadPixels
-import android.opengl.GLES30.glViewport
+import android.opengl.GLES20
+import android.opengl.GLES30
+import android.opengl.GLES30.*
 import java.nio.IntBuffer
 import javax.microedition.khronos.opengles.GL10.GL_TEXTURE_2D
 
@@ -19,28 +12,58 @@ import javax.microedition.khronos.opengles.GL10.GL_TEXTURE_2D
  * This class implements ping-pong rendering between textures for size [width] and [height] starting
  * off from originalTexture (which can be of any size)
  */
-internal class PingPongRenderer(
-    private val originalTexture: Int,
-    private val width: Int,
-    private val height: Int
-) {
+internal class PingPongRenderer(private val originalTexture: Int) {
 
     private val textBuffer = createVerticesBuffer(TEX_COORDS)
     private val posBuffer = createVerticesBuffer(POS_VERTICES)
-    private val textures = createTextures(2, width, height)
-    private val frameBuffers = IntArray(2).also {
-        glGenFramebuffers(2, it, 0)
-        initFrameBufferObject(it[0], textures[1])
-        initFrameBufferObject(it[1], textures[0])
-    }
+    private val textures = createTextures(2)
+    private val frameBuffers = IntArray(2)
     private var latestFBO = 0
     private var transformedTextureCords = createVerticesBuffer(TEX_COORDS)
+    private var width = 0
+    private var height = 0
     var outputTexture = -1
 
     fun setMatrix(matrix: Matrix) {
         val array = FloatArray(8)
         matrix.mapPoints(array, TEX_COORDS)
         transformedTextureCords = createVerticesBuffer(array)
+    }
+
+    fun initTextures(width : Int, height : Int) {
+        glBindTexture(GLES30.GL_TEXTURE_2D, textures[0])
+        glTexImage2D(
+            GLES30.GL_TEXTURE_2D,
+            0,
+            GL_RGBA,
+            width,
+            height,
+            0,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            null
+        )
+        glBindTexture(GLES30.GL_TEXTURE_2D, textures[1])
+        glTexImage2D(
+            GLES30.GL_TEXTURE_2D,
+            0,
+            GL_RGBA,
+            width,
+            height,
+            0,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            null
+        )
+
+        frameBuffers.also {
+            glGenFramebuffers(2, it, 0)
+            initFrameBufferObject(it[0], textures[1])
+            initFrameBufferObject(it[1], textures[0])
+        }
+
+        this.width = width
+        this.height = height
     }
 
     /**
