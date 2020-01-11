@@ -71,6 +71,7 @@ class Shaded(
      * Downscaling allows for faster rendering
      */
     fun downScale(downScale: Int) {
+        if (this.downScale == downScale) return
         this.downScale = downScale
         surfaceView.queueEvent { loadBitmap(bitmap) }
         requestPreviewRender()
