@@ -1,10 +1,18 @@
 package com.feresr.shaded
 
 import android.graphics.Bitmap
-import android.graphics.Matrix
-import android.opengl.GLES20
 import android.opengl.GLES30
-import android.opengl.GLES30.*
+import android.opengl.GLES30.GL_FRAMEBUFFER
+import android.opengl.GLES30.GL_RGBA
+import android.opengl.GLES30.GL_UNSIGNED_BYTE
+import android.opengl.GLES30.glBindFramebuffer
+import android.opengl.GLES30.glBindTexture
+import android.opengl.GLES30.glDeleteFramebuffers
+import android.opengl.GLES30.glDeleteTextures
+import android.opengl.GLES30.glGenFramebuffers
+import android.opengl.GLES30.glReadPixels
+import android.opengl.GLES30.glTexImage2D
+import android.opengl.GLES30.glViewport
 import java.nio.IntBuffer
 import javax.microedition.khronos.opengles.GL10.GL_TEXTURE_2D
 
@@ -19,18 +27,12 @@ internal class PingPongRenderer(private val originalTexture: Int) {
     private val textures = createTextures(2)
     private val frameBuffers = IntArray(2)
     private var latestFBO = 0
-    private var transformedTextureCords = createVerticesBuffer(TEX_COORDS)
+    private var textureCords = createVerticesBuffer(TEX_COORDS)
     private var width = 0
     private var height = 0
     var outputTexture = -1
 
-    fun setMatrix(matrix: Matrix) {
-        val array = FloatArray(8)
-        matrix.mapPoints(array, TEX_COORDS)
-        transformedTextureCords = createVerticesBuffer(array)
-    }
-
-    fun initTextures(width : Int, height : Int) {
+    fun initTextures(width: Int, height: Int) {
         glBindTexture(GLES30.GL_TEXTURE_2D, textures[0])
         glTexImage2D(
             GLES30.GL_TEXTURE_2D,
@@ -76,7 +78,7 @@ internal class PingPongRenderer(private val originalTexture: Int) {
             glBindTexture(GL_TEXTURE_2D, if (i == 0) originalTexture else textures[i % 2])
             //write to
             glBindFramebuffer(GL_FRAMEBUFFER, frameBuffers[i % 2])
-            filter.render(if (i == 0) transformedTextureCords else textBuffer, posBuffer)
+            filter.render(if (i == 0) textureCords else textBuffer, posBuffer)
             latestFBO = frameBuffers[i % 2]
         }
 

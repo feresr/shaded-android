@@ -1,6 +1,7 @@
 package com.feresr.shaded
 
 import android.content.Context
+import android.graphics.Matrix
 import android.opengl.GLES30
 import javax.microedition.khronos.opengles.GL10
 
@@ -55,6 +56,12 @@ internal class ScreenRenderer(private val context: Context) {
 
         GLES30.glDisableVertexAttribArray(texCoordHandle)
         GLES30.glDisableVertexAttribArray(posCoordHandle)
+    }
+
+    fun setMatrix(matrix: Matrix) {
+        val array = FloatArray(8)
+        matrix.mapPoints(array, TEX_VERTICES)
+        transformedTextureCords = createVerticesBuffer(array)
     }
 
     companion object {

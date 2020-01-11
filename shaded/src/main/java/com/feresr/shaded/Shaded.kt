@@ -51,7 +51,7 @@ class Shaded(
         return configurationInfo.reqGlEsVersion >= 0x20000
     }
 
-    fun requestRender() {
+    fun requestPreviewRender() {
         surfaceView.queueEvent { previewPingPongRenderer?.render(filters) }
         surfaceView.requestRender()
     }
@@ -60,15 +60,12 @@ class Shaded(
         this.bitmap = bitmap
         this.downScale = downScale
         surfaceView.queueEvent { loadBitmap(bitmap, downScale) }
-        requestRender()
+        requestPreviewRender()
     }
 
     fun setMatrix(matrix: Matrix) {
-        surfaceView.queueEvent {
-            previewPingPongRenderer?.setMatrix(matrix)
-            previewPingPongRenderer?.render(filters)
-        }
-        if (surfaceView.isAttachedToWindow) surfaceView.requestRender()
+        surfaceView.queueEvent { screenRenderer?.setMatrix(matrix) }
+        surfaceView.requestRender()
     }
 
     /**
@@ -77,7 +74,7 @@ class Shaded(
     fun downScale(downScale: Int) {
         this.downScale = downScale
         surfaceView.queueEvent { loadBitmap(bitmap, downScale) }
-        requestRender()
+        requestPreviewRender()
     }
 
     /**

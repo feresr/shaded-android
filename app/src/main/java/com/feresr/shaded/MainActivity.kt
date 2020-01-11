@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 hue.value = sin(progress.toFloat() / 10f)
                 contrast.contrast = sin(progress.toFloat() / 20f)
-                renderer.requestRender()
+                renderer.requestPreviewRender()
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
