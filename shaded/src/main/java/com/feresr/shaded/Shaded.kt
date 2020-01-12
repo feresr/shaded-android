@@ -24,6 +24,7 @@ class Shaded(
     private var previewPingPongRenderer: PingPongRenderer? = null
     private var originalTexture: Int = 0
     private var bitmap: Bitmap? = null
+    private var matrix: Matrix? = null
     private var downScale: Int = 1
 
     private var viewportWidth = 0
@@ -63,7 +64,8 @@ class Shaded(
     }
 
     fun setMatrix(matrix: Matrix) {
-        surfaceView.queueEvent { screenRenderer?.setMatrix(matrix) }
+        this.matrix = matrix
+        surfaceView.queueEvent { loadMatrix(matrix) }
         surfaceView.requestRender()
     }
 
@@ -97,6 +99,11 @@ class Shaded(
         previewPingPongRenderer?.initTextures(previewWidth, previewHeight)
     }
 
+    private fun loadMatrix(matrix: Matrix?) {
+        if (matrix == null) return
+        screenRenderer?.setMatrix(matrix)
+    }
+
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         GLES30.glDisable(GLES30.GL_BLEND)
         GLES30.glDisable(GLES30.GL_DEPTH_TEST)
@@ -105,6 +112,7 @@ class Shaded(
         originalTexture = createTexture()
         previewPingPongRenderer = PingPongRenderer(originalTexture)
         loadBitmap(bitmap)
+        loadMatrix(matrix)
         previewPingPongRenderer?.render(filters)
     }
 
@@ -129,13 +137,16 @@ class Shaded(
     }
 
     /**
-     * Renders the currently set bitmap, if previously set
+     * Renders the current frame into a bitmap.
+     * It will re initialize the textures on the pingpong renderer in order to make it match the
+     * dimensions of the original bitmap. (This has no effect if downScale == 1)
      */
     fun getBitmap(callback: (Bitmap?) -> Unit) {
         surfaceView.queueEvent {
-            downScale(1)
+            if (downScale != 1) {
+                previewPingPongRenderer?.initTextures(bitmap!!.width, bitmap!!.height)
+            }
             val bitmap = previewPingPongRenderer?.renderToBitmap(filters)
-            downScale(downScale)
             handler.post { callback(bitmap) }
         }
         surfaceView.requestRender()

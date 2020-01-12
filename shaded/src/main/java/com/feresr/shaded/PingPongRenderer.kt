@@ -104,7 +104,7 @@ internal class PingPongRenderer(private val originalTexture: Int) {
             }
             bitmap.setPixels(array, 0, width, 0, row, width, 1)
         }
-
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
         return bitmap
     }
 

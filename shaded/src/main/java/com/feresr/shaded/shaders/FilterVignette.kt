@@ -45,11 +45,11 @@ class FilterVignette(context: Context, @Volatile var config: VignetteConfig) :
     }
 
     data class VignetteConfig(
-        val start: Float,
-        val end: Float,
-        val center: Pair<Float, Float>,
-        val vignetteColorR: Float,
-        val vignetteColorG: Float,
-        val vignetteColorB: Float
+        val start: Float = 0f,
+        val end: Float = 0f,
+        val center: Pair<Float, Float> = 0f to 0f,
+        val vignetteColorR: Float = 0f,
+        val vignetteColorG: Float = 0f,
+        val vignetteColorB: Float = 0f
     )
 }
