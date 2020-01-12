@@ -64,6 +64,11 @@ internal class ScreenRenderer(private val context: Context) {
         transformedTextureCords = createVerticesBuffer(array)
     }
 
+    fun delete() {
+        GLES30.glDeleteProgram(program)
+        program = 0
+    }
+
     companion object {
         private val TEX_VERTICES = floatArrayOf(
             0.0f, 1.0f,

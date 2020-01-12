@@ -26,9 +26,7 @@ class MainActivity : AppCompatActivity() {
         val renderer = Shaded(this, surfaceview, listOf(contrast, hue))
         renderer.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.ducks))
 
-        surfaceview.setOnClickListener {
-            renderer.setBackgroundColor(Color.parseColor("#FF0000"))
-        }
+        surfaceview.setOnClickListener { renderer.setBackgroundColor(Color.GREEN) }
         seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 hue.value = sin(progress.toFloat() / 10f)

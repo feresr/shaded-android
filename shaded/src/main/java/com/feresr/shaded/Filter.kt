@@ -68,4 +68,8 @@ abstract class Filter(val context: Context, @RawRes val shader: Int) {
         posCoordHandle = GLES30.glGetAttribLocation(program, "a_position")
         bindAttributes()
     }
+
+    fun delete() {
+        GLES30.glDeleteProgram(program)
+    }
 }

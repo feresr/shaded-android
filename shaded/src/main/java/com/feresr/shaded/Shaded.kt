@@ -5,14 +5,14 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Matrix
-import android.opengl.GLES20.GL_FRAMEBUFFER
 import android.opengl.GLES30
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
 import android.os.Handler
+import java.nio.IntBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
-import javax.microedition.khronos.opengles.GL10.GL_COLOR_BUFFER_BIT
+
 
 class Shaded(
     private val context: Context,
@@ -37,7 +37,6 @@ class Shaded(
         surfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0)
         surfaceView.setRenderer(this)
         surfaceView.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
-        surfaceView.requestRender()
     }
 
     private fun supportsOpenGLES(context: Context): Boolean {
@@ -48,12 +47,7 @@ class Shaded(
     }
 
     fun requestPreviewRender() {
-        surfaceView.queueEvent {
-            previewPingPongRenderer?.render(filters)
-            GLES30.glViewport(0, 0, viewportWidth, viewportHeight)
-            val previewOutputTexture = previewPingPongRenderer?.outputTexture ?: originalTexture
-            screenRenderer?.render(previewOutputTexture)
-        }
+        surfaceView.queueEvent { previewPingPongRenderer?.render(filters) }
         surfaceView.requestRender()
     }
 
@@ -70,17 +64,25 @@ class Shaded(
     }
 
     fun setBackgroundColor(color: Int) {
+        this.bitmap = null
         surfaceView.queueEvent {
-            GLES30.glBindFramebuffer(GL_FRAMEBUFFER, 0)
-            GLES30.glClearColor(
-                Color.red(color) / 255f,
-                Color.green(color) / 255f,
-                Color.blue(color) / 255f,
-                1f
+            val red = Color.red(color)
+            val green = Color.green(color)
+            val blue = Color.blue(color)
+            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, originalTexture)
+            GLES30.glTexImage2D(
+                GLES30.GL_TEXTURE_2D,
+                0,
+                GLES30.GL_RGBA,
+                1,
+                1,
+                0,
+                GLES30.GL_RGBA,
+                GLES30.GL_UNSIGNED_BYTE,
+                IntBuffer.wrap(intArrayOf(red + (green shl 8) + (blue shl 16)))
             )
-            GLES30.glClear(GL_COLOR_BUFFER_BIT)
         }
-        surfaceView.requestRender()
+        requestPreviewRender()
     }
 
     /**
@@ -131,7 +133,9 @@ class Shaded(
     }
 
     override fun onDrawFrame(unused: GL10) {
-
+        GLES30.glViewport(0, 0, viewportWidth, viewportHeight)
+        val previewOutputTexture = previewPingPongRenderer?.outputTexture ?: originalTexture
+        screenRenderer?.render(previewOutputTexture)
     }
 
     override fun onSurfaceChanged(unused: GL10, width: Int, height: Int) {
@@ -142,7 +146,7 @@ class Shaded(
 
     /**
      * Renders the current frame into a bitmap.
-     * It will re initialize the textures on the pingpong renderer in order to make it match the
+     * It will re initialize the textures on the ping-pong renderer in order to make it match the
      * dimensions of the original bitmap. (This has no effect if downScale == 1)
      */
     fun getBitmap(callback: (Bitmap?) -> Unit) {
@@ -156,6 +160,8 @@ class Shaded(
     }
 
     fun destroy() {
+        filters.forEach { it.delete() }
         previewPingPongRenderer?.delete()
+        screenRenderer?.delete()
     }
 }
