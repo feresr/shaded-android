@@ -81,6 +81,7 @@ class Shaded(
                 GLES30.GL_UNSIGNED_BYTE,
                 IntBuffer.wrap(intArrayOf(red + (green shl 8) + (blue shl 16)))
             )
+            previewPingPongRenderer?.initTextures(1, 1)
         }
         requestPreviewRender()
     }
