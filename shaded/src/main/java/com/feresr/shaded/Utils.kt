@@ -1,15 +1,13 @@
 package com.feresr.shaded
 
-import android.graphics.Bitmap
+import android.app.ActivityManager
+import android.content.Context
 import android.opengl.GLES30
 import android.opengl.GLU
-import android.opengl.GLUtils
 import android.util.Log
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
-import javax.microedition.khronos.egl.EGL10
-import javax.microedition.khronos.egl.EGLContext
 import javax.microedition.khronos.opengles.GL10
 
 internal fun loadProgram(fragmentShader: String, vertexShader: String): Int {
@@ -160,4 +158,11 @@ internal fun initFrameBufferObject(framebuffer: Int, texture: Int) {
         )
     }
     GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0)
+}
+
+fun supportsOpenGLES(context: Context): Boolean {
+    val activityManager =
+        context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+    val configurationInfo = activityManager.deviceConfigurationInfo
+    return configurationInfo.reqGlEsVersion >= 0x20000
 }

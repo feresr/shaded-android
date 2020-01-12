@@ -1,7 +1,6 @@
 package com.feresr.shaded
 
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.os.Bundle
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
@@ -26,7 +25,6 @@ class MainActivity : AppCompatActivity() {
         val renderer = Shaded(this, surfaceview, listOf(contrast, hue))
         renderer.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.ducks))
 
-        surfaceview.setOnClickListener { renderer.setBackgroundColor(Color.GREEN) }
         seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 hue.value = sin(progress.toFloat() / 10f)

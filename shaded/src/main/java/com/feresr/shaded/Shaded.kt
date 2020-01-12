@@ -1,18 +1,14 @@
 package com.feresr.shaded
 
-import android.app.ActivityManager
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.graphics.Matrix
 import android.opengl.GLES30
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
 import android.os.Handler
-import java.nio.IntBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
-
 
 class Shaded(
     private val context: Context,
@@ -32,18 +28,11 @@ class Shaded(
     private var viewportHeight = 0
 
     init {
-        check(supportsOpenGLES(context)) { "OpenGL ES 2.0 is not supported on this phone." }
+        check(supportsOpenGLES(context)) { "OpenGL ES 2.0 is not supported on this device." }
         surfaceView.setEGLContextClientVersion(2)
         surfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0)
         surfaceView.setRenderer(this)
         surfaceView.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
-    }
-
-    private fun supportsOpenGLES(context: Context): Boolean {
-        val activityManager =
-            context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val configurationInfo = activityManager.deviceConfigurationInfo
-        return configurationInfo.reqGlEsVersion >= 0x20000
     }
 
     fun requestPreviewRender() {
@@ -61,29 +50,6 @@ class Shaded(
         this.matrix = matrix
         surfaceView.queueEvent { loadMatrix(matrix) }
         surfaceView.requestRender()
-    }
-
-    fun setBackgroundColor(color: Int) {
-        this.bitmap = null
-        surfaceView.queueEvent {
-            val red = Color.red(color)
-            val green = Color.green(color)
-            val blue = Color.blue(color)
-            GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, originalTexture)
-            GLES30.glTexImage2D(
-                GLES30.GL_TEXTURE_2D,
-                0,
-                GLES30.GL_RGBA,
-                1,
-                1,
-                0,
-                GLES30.GL_RGBA,
-                GLES30.GL_UNSIGNED_BYTE,
-                IntBuffer.wrap(intArrayOf(red + (green shl 8) + (blue shl 16)))
-            )
-            previewPingPongRenderer?.initTextures(1, 1)
-        }
-        requestPreviewRender()
     }
 
     /**
@@ -152,7 +118,12 @@ class Shaded(
      */
     fun getBitmap(callback: (Bitmap?) -> Unit) {
         surfaceView.queueEvent {
-            val bmp = checkNotNull(bitmap)
+            val bmp = bitmap
+            if (bmp == null) {
+                handler.post { callback(null) }
+                return@queueEvent
+            }
+
             if (downScale != 1) previewPingPongRenderer?.initTextures(bmp.width, bmp.height)
             val bitmap = previewPingPongRenderer?.renderToBitmap(filters)
             handler.post { callback(bitmap) }
