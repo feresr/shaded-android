@@ -25,7 +25,7 @@ internal class PingPongRenderer(private val originalTexture: Int) {
     private val textBuffer = createVerticesBuffer(TEX_COORDS)
     private val posBuffer = createVerticesBuffer(POS_VERTICES)
     private val textures = createTextures(2)
-    private val frameBuffers = IntArray(2)
+    private val frameBuffers = IntArray(2).also { glGenFramebuffers(2, it, 0) }
     private var latestFBO = 0
     private var textureCords = createVerticesBuffer(TEX_COORDS)
     private var width = 0
@@ -59,9 +59,8 @@ internal class PingPongRenderer(private val originalTexture: Int) {
         )
 
         frameBuffers.also {
-            glGenFramebuffers(2, it, 0)
-            initFrameBufferObject(it[0], textures[1])
-            initFrameBufferObject(it[1], textures[0])
+            attachTextureToFBO(it[0], textures[1])
+            attachTextureToFBO(it[1], textures[0])
         }
 
         this.width = width

@@ -8,6 +8,8 @@ import android.util.Log
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import javax.microedition.khronos.egl.EGL10
+import javax.microedition.khronos.egl.EGLContext
 import javax.microedition.khronos.opengles.GL10
 
 internal fun loadProgram(fragmentShader: String, vertexShader: String): Int {
@@ -139,7 +141,7 @@ fun createTexture(): Int {
     return texture
 }
 
-internal fun initFrameBufferObject(framebuffer: Int, texture: Int) {
+internal fun attachTextureToFBO(framebuffer: Int, texture: Int) {
     GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, framebuffer)
     // Write to this texture
     GLES30.glFramebufferTexture2D(
@@ -151,10 +153,12 @@ internal fun initFrameBufferObject(framebuffer: Int, texture: Int) {
     )
     if (GLES30.glCheckFramebufferStatus(GLES30.GL_FRAMEBUFFER) != GLES30.GL_FRAMEBUFFER_COMPLETE) {
         val glError = GLES30.glGetError()
+        val isOpenGLThread =
+            (EGLContext.getEGL() as EGL10).eglGetCurrentContext() != EGL10.EGL_NO_CONTEXT
         throw RuntimeException(
-            "Failed to create program (initFrameBufferObject): glCheckFramebufferStatus - ${GLES30.glCheckFramebufferStatus(
+            "Failed to create program (attachTextureToFBO): glCheckFramebufferStatus - ${GLES30.glCheckFramebufferStatus(
                 GLES30.GL_FRAMEBUFFER
-            )} - glError $glError - glErrorMessage ${GLU.gluErrorString(glError)}, texture: $texture, frameBuffer: $framebuffer"
+            )} -glError $glError - glErrorMessage ${GLU.gluErrorString(glError)}, texture: $texture, frameBuffer: $framebuffer, isOpenGLThread: $isOpenGLThread"
         )
     }
     GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, 0)
