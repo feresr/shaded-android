@@ -19,13 +19,10 @@ class Shaded(
 ) : GLSurfaceView.Renderer {
 
     /**
-     * Using own Queue implementation as opposed to [GLSurfaceView.queueEvent] for two reasons:
-     *
-     * 1. [GLSurfaceView.queueEvent] will invoke the runnable right away, even after the GLThread is
+     * Using own Queue implementation as opposed to [GLSurfaceView.queueEvent].
+     * [GLSurfaceView.queueEvent] will invoke the runnable right away, even after the GLThread is
      * paused by and [GLSurfaceView.onPause] the gl context is lost.
      * See [GLSurfaceView] guarded run method.
-     *
-     * 2.
      */
     private val queue: BlockingQueue<() -> Unit> = LinkedBlockingQueue<() -> Unit>()
     private val handler = Handler()
@@ -145,6 +142,7 @@ class Shaded(
     }
 
     fun destroy() {
+        queue.clear()
         filters.forEach { it.delete() }
         previewPingPongRenderer?.delete()
         screenRenderer?.delete()
