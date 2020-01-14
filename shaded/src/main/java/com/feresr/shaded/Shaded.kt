@@ -7,6 +7,8 @@ import android.opengl.GLES30
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
 import android.os.Handler
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.LinkedBlockingQueue
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -16,6 +18,16 @@ class Shaded(
     private val filters: List<Filter>
 ) : GLSurfaceView.Renderer {
 
+    /**
+     * Using own Queue implementation as opposed to [GLSurfaceView.queueEvent] for two reasons:
+     *
+     * 1. [GLSurfaceView.queueEvent] will invoke the runnable right away, even after the GLThread is
+     * paused by and [GLSurfaceView.onPause] the gl context is lost.
+     * See [GLSurfaceView] guarded run method.
+     *
+     * 2.
+     */
+    private val queue: BlockingQueue<() -> Unit> = LinkedBlockingQueue<() -> Unit>()
     private val handler = Handler()
     private var screenRenderer: ScreenRenderer? = null
     private var previewPingPongRenderer: PingPongRenderer? = null
@@ -36,20 +48,20 @@ class Shaded(
     }
 
     fun requestPreviewRender() {
-        surfaceView.queueEvent { previewPingPongRenderer?.render(filters) }
+        queue.add { previewPingPongRenderer?.render(filters) }
         surfaceView.requestRender()
     }
 
     fun setBitmap(bitmap: Bitmap) {
         this.bitmap = bitmap
-        surfaceView.queueEvent { loadBitmap(bitmap) }
+        queue.add { loadBitmap(bitmap) }
         requestPreviewRender()
     }
 
     fun setMatrix(matrix: Matrix) {
         this.matrix = matrix
-        surfaceView.queueEvent { loadMatrix(matrix) }
-        surfaceView.requestRender()
+        queue.add { loadMatrix(matrix) }
+        requestPreviewRender()
     }
 
     /**
@@ -58,7 +70,7 @@ class Shaded(
     fun downScale(downScale: Int) {
         if (this.downScale == downScale) return
         this.downScale = downScale
-        surfaceView.queueEvent { loadBitmap(bitmap) }
+        queue.add { loadBitmap(bitmap) }
         requestPreviewRender()
     }
 
@@ -96,10 +108,11 @@ class Shaded(
         previewPingPongRenderer = PingPongRenderer(originalTexture)
         loadBitmap(bitmap)
         loadMatrix(matrix)
-        requestPreviewRender()
+        previewPingPongRenderer?.render(filters)
     }
 
     override fun onDrawFrame(unused: GL10) {
+        while (queue.isNotEmpty()) queue.take().invoke()
         GLES30.glViewport(0, 0, viewportWidth, viewportHeight)
         val previewOutputTexture = previewPingPongRenderer?.outputTexture ?: originalTexture
         screenRenderer?.render(previewOutputTexture)
@@ -117,11 +130,11 @@ class Shaded(
      * dimensions of the original bitmap. (This has no effect if downScale == 1)
      */
     fun getBitmap(callback: (Bitmap?) -> Unit) {
-        surfaceView.queueEvent {
+        queue.add {
             val bmp = bitmap
             if (bmp == null) {
                 handler.post { callback(null) }
-                return@queueEvent
+                return@add
             }
 
             if (downScale != 1) previewPingPongRenderer?.initTextures(bmp.width, bmp.height)
