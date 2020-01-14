@@ -58,7 +58,7 @@ class Shaded(
     fun setMatrix(matrix: Matrix) {
         this.matrix = matrix
         queue.add { loadMatrix(matrix) }
-        requestPreviewRender()
+        surfaceView.requestRender()
     }
 
     /**
