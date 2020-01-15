@@ -89,21 +89,7 @@ internal class PingPongRenderer(private val originalTexture: Int) {
         render(filters)
         glBindFramebuffer(GL_FRAMEBUFFER, latestFBO)
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val pixels: IntBuffer = IntBuffer.wrap(IntArray(width))
-
-        for (row in 0 until height) {
-            glReadPixels(0, row, width, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixels)
-            val array = pixels.array()
-            for (i in array.indices) {
-                val red = (array[i] shr 0) and 0xff
-                val green = (array[i] shr 8) and 0xff
-                val blue = (array[i] shr 16) and 0xff
-                val alpha = (array[i] shr 24) and 0xff
-                array[i] = (alpha shl 24) or (red shl 16) or ((green) shl 8) or (blue)
-            }
-            bitmap.setPixels(array, 0, width, 0, row, width, 1)
-        }
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        glReadPixelsInto(bitmap)
         return bitmap
     }
 
@@ -113,6 +99,13 @@ internal class PingPongRenderer(private val originalTexture: Int) {
     }
 
     companion object {
+        init {
+            System.loadLibrary("native-lib")
+        }
+
+        @JvmStatic
+        external fun glReadPixelsInto(srcBitmap: Bitmap)
+
         private val POS_VERTICES = floatArrayOf(
             -1.0f, -1.0f,   //bottom left
             -1.0f, 1.0f,    //top left
