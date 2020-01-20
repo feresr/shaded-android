@@ -10,10 +10,8 @@ import android.opengl.GLES30.glBindTexture
 import android.opengl.GLES30.glDeleteFramebuffers
 import android.opengl.GLES30.glDeleteTextures
 import android.opengl.GLES30.glGenFramebuffers
-import android.opengl.GLES30.glReadPixels
 import android.opengl.GLES30.glTexImage2D
 import android.opengl.GLES30.glViewport
-import java.nio.IntBuffer
 import javax.microedition.khronos.opengles.GL10.GL_TEXTURE_2D
 
 /**
@@ -105,6 +103,24 @@ internal class PingPongRenderer(private val originalTexture: Int) {
 
         @JvmStatic
         external fun glReadPixelsInto(srcBitmap: Bitmap)
+
+        @JvmStatic
+        external fun loadIntoOpenGl(texture : Int)
+
+        @JvmStatic
+        external fun storeBitmap(srcBitmap: Bitmap)
+
+        @JvmStatic
+        external fun freeBitmap()
+
+        @JvmStatic
+        external fun isBitmapStored(): Boolean
+
+        @JvmStatic
+        external fun getBitmapWidth(): Int
+
+        @JvmStatic
+        external fun getBitmapHeight(): Int
 
         private val POS_VERTICES = floatArrayOf(
             -1.0f, -1.0f,   //bottom left

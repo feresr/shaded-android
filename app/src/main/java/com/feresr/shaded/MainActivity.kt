@@ -6,8 +6,10 @@ import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import com.feresr.shaded.shaders.FilterContrast
 import com.feresr.shaded.shaders.FilterHue
+import kotlinx.android.synthetic.main.activity_main.clearBitmapButton
 import kotlinx.android.synthetic.main.activity_main.result
 import kotlinx.android.synthetic.main.activity_main.seekbar
+import kotlinx.android.synthetic.main.activity_main.setBitmapButton
 import kotlinx.android.synthetic.main.activity_main.surfaceview
 import kotlin.math.cos
 import kotlin.math.sin
@@ -42,6 +44,13 @@ class MainActivity : AppCompatActivity() {
                 renderer.getBitmap { result.setImageBitmap(it) }
             }
         })
+
+        clearBitmapButton.setOnClickListener {
+            renderer.destroy()
+        }
+        setBitmapButton.setOnClickListener {
+            renderer.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.ducks))
+        }
     }
 
     override fun onPause() {

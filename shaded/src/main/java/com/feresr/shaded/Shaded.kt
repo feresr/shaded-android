@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.opengl.GLES30
 import android.opengl.GLSurfaceView
-import android.opengl.GLUtils
 import android.os.Handler
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
@@ -29,10 +28,8 @@ class Shaded(
     private var screenRenderer: ScreenRenderer? = null
     private var previewPingPongRenderer: PingPongRenderer? = null
     private var originalTexture: Int = 0
-    private var bitmap: Bitmap? = null
     private var matrix: Matrix? = null
     private var downScale: Int = 1
-
     private var viewportWidth = 0
     private var viewportHeight = 0
 
@@ -50,7 +47,6 @@ class Shaded(
     }
 
     fun setBitmap(bitmap: Bitmap) {
-        this.bitmap = bitmap
         queue.add { loadBitmap(bitmap) }
         requestPreviewRender()
     }
@@ -67,7 +63,14 @@ class Shaded(
     fun downScale(downScale: Int) {
         if (this.downScale == downScale) return
         this.downScale = downScale
-        queue.add { loadBitmap(bitmap) }
+        queue.add {
+            if (PingPongRenderer.isBitmapStored()) {
+                previewPingPongRenderer?.initTextures(
+                    PingPongRenderer.getBitmapWidth() / downScale,
+                    PingPongRenderer.getBitmapHeight() / downScale
+                )
+            }
+        }
         requestPreviewRender()
     }
 
@@ -83,12 +86,12 @@ class Shaded(
      */
     private fun loadBitmap(bitmap: Bitmap?) {
         if (bitmap == null) return
-        GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, originalTexture)
-        GLUtils.texImage2D(GLES30.GL_TEXTURE_2D, 0, bitmap, 0)
-
-        val previewWidth = bitmap.width / downScale
-        val previewHeight = bitmap.height / downScale
-        previewPingPongRenderer?.initTextures(previewWidth, previewHeight)
+        PingPongRenderer.storeBitmap(bitmap)
+        PingPongRenderer.loadIntoOpenGl(originalTexture)
+        previewPingPongRenderer?.initTextures(
+            bitmap.width / downScale,
+            bitmap.height / downScale
+        )
     }
 
     private fun loadMatrix(matrix: Matrix?) {
@@ -99,13 +102,23 @@ class Shaded(
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         GLES30.glDisable(GLES30.GL_BLEND)
         GLES30.glDisable(GLES30.GL_DEPTH_TEST)
-        filters.forEach { it.init() }
-        screenRenderer = ScreenRenderer(context)
+
         originalTexture = createTexture()
+        PingPongRenderer.loadIntoOpenGl(originalTexture)
+
+        filters.forEach { it.init() }
+
+        screenRenderer = ScreenRenderer(context)
         previewPingPongRenderer = PingPongRenderer(originalTexture)
-        loadBitmap(bitmap)
-        loadMatrix(matrix)
-        previewPingPongRenderer?.render(filters)
+        if (PingPongRenderer.isBitmapStored()) {
+            previewPingPongRenderer?.initTextures(
+                PingPongRenderer.getBitmapWidth(),
+                PingPongRenderer.getBitmapHeight()
+            )
+            loadMatrix(matrix)
+            previewPingPongRenderer?.render(filters)
+        }
+
     }
 
     override fun onDrawFrame(unused: GL10) {
@@ -128,13 +141,14 @@ class Shaded(
      */
     fun getBitmap(callback: (Bitmap?) -> Unit) {
         queue.add {
-            val bmp = bitmap
-            if (bmp == null) {
+            if (!PingPongRenderer.isBitmapStored()) {
                 handler.post { callback(null) }
                 return@add
             }
-
-            if (downScale != 1) previewPingPongRenderer?.initTextures(bmp.width, bmp.height)
+            if (downScale != 1) previewPingPongRenderer?.initTextures(
+                PingPongRenderer.getBitmapWidth(),
+                PingPongRenderer.getBitmapHeight()
+            )
             val bitmap = previewPingPongRenderer?.renderToBitmap(filters)
             handler.post { callback(bitmap) }
         }
@@ -142,6 +156,7 @@ class Shaded(
     }
 
     fun destroy() {
+        PingPongRenderer.freeBitmap()
         queue.clear()
         filters.forEach { it.delete() }
         previewPingPongRenderer?.delete()
