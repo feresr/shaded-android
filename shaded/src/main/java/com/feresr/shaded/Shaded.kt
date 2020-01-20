@@ -161,5 +161,6 @@ class Shaded(
         filters.forEach { it.delete() }
         previewPingPongRenderer?.delete()
         screenRenderer?.delete()
+        GLES30.glDeleteTextures(1, intArrayOf(originalTexture), 0)
     }
 }

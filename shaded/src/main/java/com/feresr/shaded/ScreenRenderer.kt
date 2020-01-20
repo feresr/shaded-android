@@ -5,9 +5,6 @@ import android.graphics.Matrix
 import android.opengl.GLES30
 import javax.microedition.khronos.opengles.GL10
 
-/**
- * C
- */
 internal class ScreenRenderer(private val context: Context) {
 
     private val transformedPosVertices = createVerticesBuffer(POS_VERTICES)
@@ -66,6 +63,8 @@ internal class ScreenRenderer(private val context: Context) {
 
     fun delete() {
         GLES30.glDeleteProgram(program)
+        transformedPosVertices.clear()
+        transformedTextureCords.clear()
         program = 0
     }
 

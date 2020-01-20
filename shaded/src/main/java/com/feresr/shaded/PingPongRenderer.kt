@@ -94,6 +94,8 @@ internal class PingPongRenderer(private val originalTexture: Int) {
     fun delete() {
         glDeleteFramebuffers(2, frameBuffers, 0)
         glDeleteTextures(2, textures, 0)
+        posBuffer.clear()
+        textBuffer.clear()
     }
 
     companion object {
