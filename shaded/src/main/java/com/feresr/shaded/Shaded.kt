@@ -155,6 +155,10 @@ class Shaded(
         surfaceView.requestRender()
     }
 
+    fun queueEvent(event : () -> Unit) {
+        queue.add(event)
+    }
+
     fun destroy() {
         PingPongRenderer.freeBitmap()
         queue.clear()
