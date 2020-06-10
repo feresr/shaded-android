@@ -5,7 +5,7 @@ import android.graphics.Matrix
 import android.opengl.GLES30
 import javax.microedition.khronos.opengles.GL10
 
-internal class ScreenRenderer(private val context: Context) {
+class ScreenRenderer(private val context: Context) {
 
     private val transformedPosVertices = createVerticesBuffer(POS_VERTICES)
     private var transformedTextureCords = createVerticesBuffer(TEX_VERTICES)
@@ -48,6 +48,7 @@ internal class ScreenRenderer(private val context: Context) {
             0,
             transformedPosVertices
         )
+
         GLES30.glEnableVertexAttribArray(posCoordHandle)
         GLES30.glDrawArrays(GLES30.GL_TRIANGLE_STRIP, 0, 4)
 

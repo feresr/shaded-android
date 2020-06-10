@@ -73,7 +73,7 @@ internal fun createVerticesBuffer(vertices: FloatArray): FloatBuffer {
     return buffer
 }
 
-internal fun createTextures(n: Int): IntArray {
+fun createTextures(n: Int): IntArray {
     val textures = IntArray(n)
     GLES30.glGenTextures(n, textures, 0)
     val glError = GLES30.glGetError()
@@ -141,7 +141,7 @@ fun createTexture(): Int {
     return texture
 }
 
-internal fun attachTextureToFBO(framebuffer: Int, texture: Int) {
+fun attachTextureToFBO(framebuffer: Int, texture: Int) {
     GLES30.glBindFramebuffer(GLES30.GL_FRAMEBUFFER, framebuffer)
     // Write to this texture
     GLES30.glFramebufferTexture2D(
@@ -168,5 +168,5 @@ fun supportsOpenGLES(context: Context): Boolean {
     val activityManager =
         context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
     val configurationInfo = activityManager.deviceConfigurationInfo
-    return configurationInfo.reqGlEsVersion >= 0x20000
+    return configurationInfo.reqGlEsVersion >= 0x30002
 }

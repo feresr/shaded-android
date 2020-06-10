@@ -4,12 +4,16 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.opengl.GLES30
+import android.opengl.GLES31
+import android.opengl.GLES32
 import android.opengl.GLSurfaceView
 import android.os.Handler
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
+import javax.microedition.khronos.opengles.GL10.GL_ONE_MINUS_SRC_ALPHA
+import javax.microedition.khronos.opengles.GL10.GL_SRC_ALPHA
 
 class Shaded(
     private val context: Context,
@@ -24,7 +28,11 @@ class Shaded(
      * See [GLSurfaceView] guarded run method.
      */
     private val queue: BlockingQueue<() -> Unit> = LinkedBlockingQueue<() -> Unit>()
+    private val postDraw: BlockingQueue<() -> Unit> = LinkedBlockingQueue<() -> Unit>()
     private val handler = Handler()
+
+
+    private val brushRenderers = mutableListOf<BrushRenderer>()
     private var screenRenderer: ScreenRenderer? = null
     private var previewPingPongRenderer: PingPongRenderer? = null
     private var originalTexture: Int = 0
@@ -35,7 +43,8 @@ class Shaded(
 
     init {
         check(supportsOpenGLES(context)) { "OpenGL ES 2.0 is not supported on this device." }
-        surfaceView.setEGLContextClientVersion(2)
+        surfaceView.setEGLContextClientVersion(3)
+
         surfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0)
         surfaceView.setRenderer(this)
         surfaceView.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
@@ -100,8 +109,15 @@ class Shaded(
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        GLES30.glDisable(GLES30.GL_BLEND)
-        GLES30.glDisable(GLES30.GL_DEPTH_TEST)
+        GLES32.glEnable(GLES32.GL_BLEND)
+        //GLES32.glBlendEquation(GL_MAX)
+
+
+        //GLES32.glBlendFunc(GL_SRC_COLOR, GL_SRC_COLOR);
+        GLES32.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        //GLES31.glDisable(GLES31.GL_DEPTH_TEST)
+
 
         originalTexture = createTexture()
         PingPongRenderer.loadIntoOpenGl(originalTexture)
@@ -121,15 +137,32 @@ class Shaded(
 
     }
 
+
     override fun onDrawFrame(unused: GL10) {
         while (queue.isNotEmpty()) queue.take().invoke()
-        GLES30.glViewport(0, 0, viewportWidth, viewportHeight)
-        val previewOutputTexture = previewPingPongRenderer?.outputTexture ?: originalTexture
-        screenRenderer?.render(previewOutputTexture)
+        GLES32.glViewport(0, 0, viewportWidth, viewportHeight)
+        //val previewOutputTexture = previewPingPongRenderer?.outputTexture ?: originalTexture
+        //screenRenderer?.render(previewOutputTexture)
+
+//        GLES32.glEnable(GLES32.GL_DEPTH_TEST);
+//        GLES32.glClearDepthf(1.0f);
+        //GLES32.glClearColor(0f, 1f, 0f, 0f)
+//        GLES32.glClear(GLES32.GL_COLOR_BUFFER_BIT or GLES32.GL_DEPTH_BUFFER_BIT)
+
+        GLES30.glClearColor(1f, 1f, 1f, 1f)
+        GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)
+        while (postDraw.isNotEmpty()) postDraw.take().invoke()
+        brushRenderers.forEach { it.render() }
     }
 
     override fun onSurfaceChanged(unused: GL10, width: Int, height: Int) {
-        GLES30.glViewport(0, 0, width, height)
+        GLES31.glViewport(0, 0, width, height)
+//        EGL14.eglSurfaceAttrib(
+//            EGL14.eglGetCurrentDisplay(),
+//            EGL14.eglGetCurrentSurface(EGL14.EGL_DRAW),
+//            EGL14.EGL_SWAP_BEHAVIOR,
+//            EGL14.EGL_BUFFER_PRESERVED
+//        )
         viewportWidth = width
         viewportHeight = height
     }
@@ -155,8 +188,8 @@ class Shaded(
         surfaceView.requestRender()
     }
 
-    fun queueEvent(event : () -> Unit) {
-        queue.add(event)
+    fun runOnPostDraw(event: () -> Unit) {
+        postDraw.add(event)
     }
 
     fun destroy() {
@@ -165,6 +198,21 @@ class Shaded(
         filters.forEach { it.delete() }
         previewPingPongRenderer?.delete()
         screenRenderer?.delete()
-        GLES30.glDeleteTextures(1, intArrayOf(originalTexture), 0)
+        GLES31.glDeleteTextures(1, intArrayOf(originalTexture), 0)
+    }
+
+    fun undoBrushStroke() {
+        if (brushRenderers.isEmpty()) return
+        brushRenderers.removeAt(brushRenderers.size - 1)
+        surfaceView.requestRender()
+    }
+
+    fun onTouchDown() {
+        brushRenderers.add(BrushRenderer(context))
+    }
+
+    fun onTouchMoved(x: Float, y: Float) {
+        runOnPostDraw { brushRenderers.lastOrNull()?.addPoint(x, y) }
+        surfaceView.requestRender()
     }
 }
