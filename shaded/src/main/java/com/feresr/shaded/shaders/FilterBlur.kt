@@ -14,8 +14,8 @@ class FilterBlur(
 
     private var blurRadius = 0
 
-    override fun bindAttributes() {
-        super.bindAttributes()
+    override fun bindUniforms() {
+        super.bindUniforms()
         blurRadius = GLES30.glGetUniformLocation(program, "blurRadius")
     }
 

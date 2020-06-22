@@ -10,8 +10,8 @@ class FilterHue(
     @Volatile var value: Float
 ) : Filter(context, R.raw.hue) {
     private var hue = 0
-    override fun bindAttributes() {
-        super.bindAttributes()
+    override fun bindUniforms() {
+        super.bindUniforms()
         hue = GLES30.glGetUniformLocation(program, "hueAdjust")
 
     }

@@ -14,8 +14,8 @@ class FilterVignette(context: Context, @Volatile var config: VignetteConfig) :
     private var vignetteStart: Int = 0
     private var vignetteEnd: Int = 0
 
-    override fun bindAttributes() {
-        super.bindAttributes()
+    override fun bindUniforms() {
+        super.bindUniforms()
         vignetteCenter = GLES30.glGetUniformLocation(program, "vignetteCenter")
         vignetteColor = GLES30.glGetUniformLocation(program, "vignetteColor")
         vignetteStart = GLES30.glGetUniformLocation(program, "vignetteStart")

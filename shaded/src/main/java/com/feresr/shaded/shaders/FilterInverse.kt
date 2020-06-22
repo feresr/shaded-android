@@ -10,8 +10,8 @@ class FilterInverse(
     @Volatile var alpha: Float
 ) : Filter(context, R.raw.inverse) {
 
-    override fun bindAttributes() {
-        super.bindAttributes()
+    override fun bindUniforms() {
+        super.bindUniforms()
         GLES30.glUniform1f(GLES30.glGetUniformLocation(program, "alpha"), alpha)
     }
 }

@@ -25,7 +25,6 @@ internal class PingPongRenderer(private val originalTexture: Int) {
     private val textures = createTextures(2)
     private val frameBuffers = IntArray(2).also { glGenFramebuffers(2, it, 0) }
     private var latestFBO = 0
-    private var textureCords = createVerticesBuffer(TEX_COORDS)
     private var width = 0
     private var height = 0
     var outputTexture = -1
@@ -75,7 +74,7 @@ internal class PingPongRenderer(private val originalTexture: Int) {
             glBindTexture(GL_TEXTURE_2D, if (i == 0) originalTexture else textures[i % 2])
             //write to
             glBindFramebuffer(GL_FRAMEBUFFER, frameBuffers[i % 2])
-            filter.render(if (i == 0) textureCords else textBuffer, posBuffer)
+            filter.render(textBuffer, posBuffer)
             latestFBO = frameBuffers[i % 2]
         }
 
@@ -88,6 +87,7 @@ internal class PingPongRenderer(private val originalTexture: Int) {
         glBindFramebuffer(GL_FRAMEBUFFER, latestFBO)
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         glReadPixelsInto(bitmap)
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
         return bitmap
     }
 

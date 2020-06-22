@@ -10,8 +10,8 @@ class FilterContrast(context: Context, @Volatile var contrast: Float) :
 
     private var value = 0
 
-    override fun bindAttributes() {
-        super.bindAttributes()
+    override fun bindUniforms() {
+        super.bindUniforms()
         value = GLES30.glGetUniformLocation(program, "contrast")
     }
 

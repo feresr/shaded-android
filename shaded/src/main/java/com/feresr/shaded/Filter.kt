@@ -51,7 +51,7 @@ abstract class Filter(val context: Context, @RawRes val shader: Int) {
         GLES30.glDisableVertexAttribArray(posCoordHandle)
     }
 
-    protected open fun bindAttributes() {
+    protected open fun bindUniforms() {
         //no op
     }
 
@@ -66,7 +66,7 @@ abstract class Filter(val context: Context, @RawRes val shader: Int) {
         )
         texCoordHandle = GLES30.glGetAttribLocation(program, "a_texcoord")
         posCoordHandle = GLES30.glGetAttribLocation(program, "a_position")
-        bindAttributes()
+        bindUniforms()
     }
 
     fun delete() {

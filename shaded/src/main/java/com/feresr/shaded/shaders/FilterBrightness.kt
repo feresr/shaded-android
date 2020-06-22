@@ -11,8 +11,8 @@ class FilterBrightness(
 ) : Filter(context, R.raw.brightness) {
 
     private var value = 0
-    override fun bindAttributes() {
-        super.bindAttributes()
+    override fun bindUniforms() {
+        super.bindUniforms()
         value = GLES30.glGetUniformLocation(program, "brightness")
     }
 
