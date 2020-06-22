@@ -52,7 +52,7 @@ abstract class Filter(val context: Context, @RawRes val shader: Int) {
         )
         glEnableVertexAttribArray(posCoordHandle)
 
-        setValues()
+        updateUniforms()
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
 
         glDisableVertexAttribArray(texCoordHandle)
@@ -63,7 +63,7 @@ abstract class Filter(val context: Context, @RawRes val shader: Int) {
         //no op
     }
 
-    protected open fun setValues() {
+    protected open fun updateUniforms() {
         //no op
     }
 

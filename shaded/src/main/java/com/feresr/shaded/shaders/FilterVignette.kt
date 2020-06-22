@@ -22,8 +22,8 @@ class FilterVignette(context: Context, @Volatile var config: VignetteConfig) :
         vignetteEnd = GLES30.glGetUniformLocation(program, "vignetteEnd")
     }
 
-    override fun setValues() {
-        super.setValues()
+    override fun updateUniforms() {
+        super.updateUniforms()
         GLES30.glUniform1f(vignetteStart, config.start)
         GLES30.glUniform1f(vignetteEnd, config.end)
         GLES30.glUniform2fv(

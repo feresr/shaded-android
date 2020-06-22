@@ -16,8 +16,8 @@ class FilterHue(
 
     }
 
-    override fun setValues() {
-        super.setValues()
+    override fun updateUniforms() {
+        super.updateUniforms()
         GLES30.glUniform1f(hue, value)
     }
 }

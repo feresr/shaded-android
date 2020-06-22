@@ -36,7 +36,7 @@ class Shaded(
     init {
         check(supportsOpenGLES(context)) { "OpenGL ES 2.0 is not supported on this device." }
         surfaceView.setEGLContextClientVersion(2)
-        surfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0)
+        surfaceView.setEGLConfigChooser(8, 8, 8, 8, 0, 0)
         surfaceView.setRenderer(this)
         surfaceView.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
     }
@@ -155,7 +155,7 @@ class Shaded(
         surfaceView.requestRender()
     }
 
-    fun queueEvent(event : () -> Unit) {
+    fun queueEvent(event: () -> Unit) {
         queue.add(event)
     }
 

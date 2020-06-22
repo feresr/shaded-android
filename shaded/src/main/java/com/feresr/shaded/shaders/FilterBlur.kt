@@ -19,8 +19,8 @@ class FilterBlur(
         blurRadius = GLES30.glGetUniformLocation(program, "blurRadius")
     }
 
-    override fun setValues() {
-        super.setValues()
+    override fun updateUniforms() {
+        super.updateUniforms()
         GLES30.glUniform2fv(blurRadius, 1, FloatBuffer.wrap(floatArrayOf(x, y)))
     }
 }

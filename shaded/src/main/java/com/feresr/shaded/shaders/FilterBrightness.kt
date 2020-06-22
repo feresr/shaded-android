@@ -16,8 +16,8 @@ class FilterBrightness(
         value = GLES30.glGetUniformLocation(program, "brightness")
     }
 
-    override fun setValues() {
-        super.setValues()
+    override fun updateUniforms() {
+        super.updateUniforms()
         GLES30.glUniform1f(value, brightness)
     }
 }

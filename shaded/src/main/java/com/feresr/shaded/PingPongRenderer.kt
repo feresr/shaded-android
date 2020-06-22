@@ -107,7 +107,7 @@ internal class PingPongRenderer(private val originalTexture: Int) {
         external fun glReadPixelsInto(srcBitmap: Bitmap)
 
         @JvmStatic
-        external fun loadIntoOpenGl(texture : Int)
+        external fun loadIntoOpenGl(texture: Int)
 
         @JvmStatic
         external fun storeBitmap(srcBitmap: Bitmap)

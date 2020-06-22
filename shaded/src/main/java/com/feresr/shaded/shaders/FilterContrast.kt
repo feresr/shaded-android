@@ -15,8 +15,8 @@ class FilterContrast(context: Context, @Volatile var contrast: Float) :
         value = GLES30.glGetUniformLocation(program, "contrast")
     }
 
-    override fun setValues() {
-        super.setValues()
+    override fun updateUniforms() {
+        super.updateUniforms()
         GLES30.glUniform1f(value, contrast)
     }
 }
