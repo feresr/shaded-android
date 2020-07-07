@@ -42,7 +42,6 @@ internal fun loadProgram(fragmentShader: String, vertexShader: String): Int {
     }
     GLES30.glDeleteShader(iVShader)
     GLES30.glDeleteShader(iFShader)
-
     return iProgId
 }
 
@@ -165,8 +164,7 @@ internal fun attachTextureToFBO(framebuffer: Int, texture: Int) {
 }
 
 fun supportsOpenGLES(context: Context): Boolean {
-    val activityManager =
-        context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+    val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
     val configurationInfo = activityManager.deviceConfigurationInfo
     return configurationInfo.reqGlEsVersion >= 0x20000
 }

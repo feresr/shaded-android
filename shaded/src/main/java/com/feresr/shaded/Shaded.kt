@@ -60,14 +60,14 @@ class Shaded(
     /**
      * Downscaling allows for faster rendering
      */
-    fun downScale(downScale: Int) {
-        if (this.downScale == downScale) return
-        this.downScale = downScale
+    fun downScale(downScaleFactor: Int) {
+        if (this.downScale == downScaleFactor) return
+        this.downScale = downScaleFactor
         queue.add {
             if (PingPongRenderer.isBitmapStored()) {
                 previewPingPongRenderer?.initTextures(
-                    PingPongRenderer.getBitmapWidth() / downScale,
-                    PingPongRenderer.getBitmapHeight() / downScale
+                    PingPongRenderer.getBitmapWidth() / downScaleFactor,
+                    PingPongRenderer.getBitmapHeight() / downScaleFactor
                 )
             }
         }
@@ -79,8 +79,6 @@ class Shaded(
      * Loads the bitmap data into the internal preview [PingPongRenderer]s.
      *
      * @param bitmap the bitmap to be loaded
-     * @param downScale downsamples the image size for better performance.
-     * ([getBitmap] is not affected by this and will always returns the original bitmap size.
      *
      * This is meant to be called on a thread with an OpenGL context attached.
      */
@@ -105,6 +103,33 @@ class Shaded(
 
         originalTexture = createTexture()
         PingPongRenderer.loadIntoOpenGl(originalTexture)
+
+        PingPongRenderer.genVertexBuffer()
+
+        val buffer = IntArray(1)
+        GLES30.glGenVertexArrays(1, buffer, 0)
+        val VAO = buffer[0]
+        GLES30.glBindVertexArray(VAO)
+        GLES30.glEnableVertexAttribArray(0)
+        GLES30.glEnableVertexAttribArray(1)
+
+        GLES30.glVertexAttribPointer(
+            1,
+            2,
+            GLES30.GL_FLOAT,
+            false,
+            0,
+            0
+        )
+
+        GLES30.glVertexAttribPointer(
+            0,
+            2,
+            GLES30.GL_FLOAT,
+            false,
+            0,
+            4 * 8
+        )
 
         filters.forEach { it.init() }
 

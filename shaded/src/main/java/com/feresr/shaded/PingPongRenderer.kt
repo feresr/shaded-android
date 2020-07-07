@@ -1,6 +1,7 @@
 package com.feresr.shaded
 
 import android.graphics.Bitmap
+import android.opengl.GLES20
 import android.opengl.GLES30
 import android.opengl.GLES30.GL_FRAMEBUFFER
 import android.opengl.GLES30.GL_RGBA
@@ -12,6 +13,7 @@ import android.opengl.GLES30.glDeleteTextures
 import android.opengl.GLES30.glGenFramebuffers
 import android.opengl.GLES30.glTexImage2D
 import android.opengl.GLES30.glViewport
+import javax.microedition.khronos.opengles.GL10.GL_TEXTURE0
 import javax.microedition.khronos.opengles.GL10.GL_TEXTURE_2D
 
 /**
@@ -20,8 +22,6 @@ import javax.microedition.khronos.opengles.GL10.GL_TEXTURE_2D
  */
 internal class PingPongRenderer(private val originalTexture: Int) {
 
-    private val textBuffer = createVerticesBuffer(TEX_COORDS)
-    private val posBuffer = createVerticesBuffer(POS_VERTICES)
     private val textures = createTextures(2)
     private val frameBuffers = IntArray(2).also { glGenFramebuffers(2, it, 0) }
     private var latestFBO = 0
@@ -55,6 +55,7 @@ internal class PingPongRenderer(private val originalTexture: Int) {
             null
         )
 
+        glBindTexture(GLES30.GL_TEXTURE_2D, 0)
         frameBuffers.also {
             attachTextureToFBO(it[0], textures[1])
             attachTextureToFBO(it[1], textures[0])
@@ -71,10 +72,11 @@ internal class PingPongRenderer(private val originalTexture: Int) {
         glViewport(0, 0, width, height)
         for ((i, filter) in filters.withIndex()) {
             //read from
+            GLES20.glActiveTexture(GL_TEXTURE0)
             glBindTexture(GL_TEXTURE_2D, if (i == 0) originalTexture else textures[i % 2])
             //write to
             glBindFramebuffer(GL_FRAMEBUFFER, frameBuffers[i % 2])
-            filter.render(textBuffer, posBuffer)
+            filter.render()
             latestFBO = frameBuffers[i % 2]
         }
 
@@ -94,8 +96,6 @@ internal class PingPongRenderer(private val originalTexture: Int) {
     fun delete() {
         glDeleteFramebuffers(2, frameBuffers, 0)
         glDeleteTextures(2, textures, 0)
-        posBuffer.clear()
-        textBuffer.clear()
     }
 
     companion object {
@@ -124,17 +124,7 @@ internal class PingPongRenderer(private val originalTexture: Int) {
         @JvmStatic
         external fun getBitmapHeight(): Int
 
-        private val POS_VERTICES = floatArrayOf(
-            -1.0f, -1.0f,   //bottom left
-            -1.0f, 1.0f,    //top left
-            1.0f, -1.0f,    //bottom right
-            1.0f, 1.0f      //top right
-        )
-        private val TEX_COORDS = floatArrayOf(
-            0.0f, 0.0f,
-            0.0f, 1.0f,
-            1.0f, 0.0f,
-            1.0f, 1.0f
-        )
+        @JvmStatic
+        external fun genVertexBuffer()
     }
 }
