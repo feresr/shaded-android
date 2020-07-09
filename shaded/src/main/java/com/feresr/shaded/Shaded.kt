@@ -57,7 +57,7 @@ class Shaded(
     private fun supportsOpenGLES(context: Context): Boolean {
         val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val configurationInfo = activityManager.deviceConfigurationInfo
-        return configurationInfo.reqGlEsVersion >= 0x20000
+        return configurationInfo.reqGlEsVersion >= 0x30000
     }
 
     fun rerenderFilters() {

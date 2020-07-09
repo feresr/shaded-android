@@ -1,10 +1,8 @@
 package com.feresr.shaded.shaders
 
 import android.content.Context
-import android.opengl.GLES30
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
-import java.nio.FloatBuffer
 
 class FilterVignette(context: Context, @Volatile var config: VignetteConfig) :
     Filter(context, R.raw.vignette) {
@@ -16,31 +14,21 @@ class FilterVignette(context: Context, @Volatile var config: VignetteConfig) :
 
     override fun bindUniforms() {
         super.bindUniforms()
-//        vignetteCenter = GLES30.glGetUniformLocation(program, "vignetteCenter")
-//        vignetteColor = GLES30.glGetUniformLocation(program, "vignetteColor")
-//        vignetteStart = GLES30.glGetUniformLocation(program, "vignetteStart")
-//        vignetteEnd = GLES30.glGetUniformLocation(program, "vignetteEnd")
+        vignetteCenter = shader.getUniformLocation("vignetteCenter")
+        vignetteColor = shader.getUniformLocation("vignetteColor")
+        vignetteStart = shader.getUniformLocation("vignetteStart")
+        vignetteEnd = shader.getUniformLocation("vignetteEnd")
     }
 
     override fun updateUniforms() {
         super.updateUniforms()
-        GLES30.glUniform1f(vignetteStart, config.start)
-        GLES30.glUniform1f(vignetteEnd, config.end)
-        GLES30.glUniform2fv(
-            vignetteCenter,
-            1,
-            FloatBuffer.wrap(floatArrayOf(config.center.first, config.center.second))
-        )
-        GLES30.glUniform3fv(
-            vignetteColor,
-            1,
-            FloatBuffer.wrap(
-                floatArrayOf(
-                    config.vignetteColorR,
-                    config.vignetteColorG,
-                    config.vignetteColorB
-                )
-            )
+        shader.setFloat(vignetteStart, config.start)
+        shader.setFloat(vignetteEnd, config.end)
+        shader.setFloat2(vignetteCenter, config.center.first, config.center.second)
+        shader.setFloat3(
+            vignetteCenter, config.vignetteColorR,
+            config.vignetteColorG,
+            config.vignetteColorB
         )
     }
 

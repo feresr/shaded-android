@@ -2,6 +2,7 @@ package com.feresr.shaded.opengl
 
 import android.opengl.GLES20.GL_FALSE
 import android.opengl.GLES20.glDetachShader
+import android.opengl.GLES20.glUniform2f
 import android.opengl.GLES20.glUniform3f
 import android.opengl.GLES20.glUniform4f
 import android.opengl.GLES30.GL_COMPILE_STATUS
@@ -41,8 +42,9 @@ class Shader(val name: String, vertexSource: String, fragmentSource: String) {
     fun getUniformLocation(name: String): Int = glGetUniformLocation(program, name)
     fun setInt(location: Int, value: Int) = glUniform1i(location, value)
     fun setFloat(location: Int, value: Float) = glUniform1f(location, value)
-    fun setSetFloat3(location: Int, r: Float, g: Float, b: Float) = glUniform3f(location, r, g, b)
-    fun setSetFloat4(location: Int, r: Float, g: Float, b: Float, w: Float) =
+    fun setFloat2(location: Int, r: Float, g: Float) = glUniform2f(location, r, g)
+    fun setFloat3(location: Int, r: Float, g: Float, b: Float) = glUniform3f(location, r, g, b)
+    fun setFloat4(location: Int, r: Float, g: Float, b: Float, w: Float) =
         glUniform4f(location, r, g, b, w)
 
     //TODO:

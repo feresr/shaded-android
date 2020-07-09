@@ -1,15 +1,11 @@
-#version 100
-#ifdef GL_ES
-#ifdef GL_FRAGMENT_PRECISION_HIGH
-precision highp float;
-#else
-precision mediump float;
-#endif
-#endif
+#version 300 es
 
-varying vec2 v_texcoord;
+in vec2 v_texcoord;
+
 uniform sampler2D tex_sampler;
 uniform vec2 blurRadius;
+
+out vec4 FragColor;
 
 float rand(in vec2 co) {
     float a = 12.9898;
@@ -33,7 +29,7 @@ vec4 blur(in vec2 radius) {
         float weight = 1.0 - abs(percent);
         vec2 sampleVec = v_texcoord + radius * percent;
         if (sampleVec.x <= 1.0 && sampleVec.y <= 1.0) {
-            vec4 sampleColor = texture2D(tex_sampler, sampleVec);
+            vec4 sampleColor = texture(tex_sampler, sampleVec);
             color += sampleColor * weight;
             total += weight;
         }
@@ -44,5 +40,5 @@ vec4 blur(in vec2 radius) {
 }
 
 void main() {
-    gl_FragColor = blur(blurRadius);
+    FragColor = blur(blurRadius);
 }

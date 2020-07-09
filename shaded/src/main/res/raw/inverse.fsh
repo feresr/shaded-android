@@ -1,16 +1,12 @@
-#version 100
-#ifdef GL_ES
-#ifdef GL_FRAGMENT_PRECISION_HIGH
-precision highp float;
-#else
-precision mediump float;
-#endif
-#endif
+#version 300 es
+
 uniform sampler2D tex_sampler;
-varying vec2 v_texcoord;
 uniform float alpha;
 
+in vec2 v_texcoord;
+out vec4 FragColor;
+
 void main() {
-    vec4 colors = texture2D(tex_sampler, v_texcoord);
-    gl_FragColor = vec4(alpha - colors.x, alpha - colors.y, alpha - colors.z, 1.0);
+    vec4 colors = texture(tex_sampler, v_texcoord);
+    FragColor = vec4(alpha - colors.x, alpha - colors.y, alpha - colors.z, 1.0);
 }
