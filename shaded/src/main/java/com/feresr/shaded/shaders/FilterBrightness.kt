@@ -13,11 +13,12 @@ class FilterBrightness(
     private var value = 0
     override fun bindUniforms() {
         super.bindUniforms()
-        value = GLES30.glGetUniformLocation(program, "brightness")
+
+        value = shader.getUniformLocation("brightness")
     }
 
     override fun updateUniforms() {
         super.updateUniforms()
-        GLES30.glUniform1f(value, brightness)
+        shader.setFloat(value, brightness)
     }
 }

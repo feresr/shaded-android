@@ -16,7 +16,7 @@ class FilterBlur(
 
     override fun bindUniforms() {
         super.bindUniforms()
-        blurRadius = GLES30.glGetUniformLocation(program, "blurRadius")
+        blurRadius = shader.getUniformLocation("blurRadius")
     }
 
     override fun updateUniforms() {

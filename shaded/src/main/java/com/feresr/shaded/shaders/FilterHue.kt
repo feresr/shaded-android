@@ -12,12 +12,12 @@ class FilterHue(
     private var hue = 0
     override fun bindUniforms() {
         super.bindUniforms()
-        hue = GLES30.glGetUniformLocation(program, "hueAdjust")
+        hue = shader.getUniformLocation("hueAdjust")
 
     }
 
     override fun updateUniforms() {
         super.updateUniforms()
-        GLES30.glUniform1f(hue, value)
+        shader.setFloat(hue, value)
     }
 }

@@ -12,11 +12,11 @@ class FilterContrast(context: Context, @Volatile var contrast: Float) :
 
     override fun bindUniforms() {
         super.bindUniforms()
-        value = GLES30.glGetUniformLocation(program, "contrast")
+        value = shader.getUniformLocation("contrast")
     }
 
     override fun updateUniforms() {
         super.updateUniforms()
-        GLES30.glUniform1f(value, contrast)
+        shader.setFloat(value, contrast)
     }
 }

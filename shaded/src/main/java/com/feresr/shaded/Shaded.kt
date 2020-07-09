@@ -1,14 +1,24 @@
 package com.feresr.shaded
 
+import android.app.ActivityManager
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
-import android.opengl.GLES30
+import android.opengl.GLES20.GL_BLEND
+import android.opengl.GLES20.GL_DEPTH_TEST
+import android.opengl.GLES20.glDisable
+import android.opengl.GLES20.glViewport
 import android.opengl.GLSurfaceView
 import android.os.Handler
+import android.util.Log
+import com.feresr.shaded.opengl.Texture
+import com.feresr.shaded.opengl.VertexArray
+import com.feresr.shaded.opengl.VertexBuffer
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
+import javax.microedition.khronos.egl.EGL10
 import javax.microedition.khronos.egl.EGLConfig
+import javax.microedition.khronos.egl.EGLContext
 import javax.microedition.khronos.opengles.GL10
 
 class Shaded(
@@ -22,12 +32,15 @@ class Shaded(
      * [GLSurfaceView.queueEvent] will invoke the runnable right away, even after the GLThread is
      * paused by and [GLSurfaceView.onPause] the gl context is lost.
      * See [GLSurfaceView] guarded run method.
+     * Also, [GLSurfaceView.queueEvent] says "Queue a runnable to be run on the GL rendering thread"
+     * that proved to be a lie:
+     * Also: https://stackoverflow.com/questions/18827048/glsurfaceview-queueevent-does-not-execute-in-the-gl-thread
      */
     private val queue: BlockingQueue<() -> Unit> = LinkedBlockingQueue<() -> Unit>()
     private val handler = Handler()
     private var screenRenderer: ScreenRenderer? = null
     private var previewPingPongRenderer: PingPongRenderer? = null
-    private var originalTexture: Int = 0
+    private val originalTexture: Texture by lazy { Texture() }
     private var matrix: Matrix? = null
     private var downScale: Int = 1
     private var viewportWidth = 0
@@ -35,20 +48,36 @@ class Shaded(
 
     init {
         check(supportsOpenGLES(context)) { "OpenGL ES 2.0 is not supported on this device." }
-        surfaceView.setEGLContextClientVersion(2)
+        surfaceView.setEGLContextClientVersion(3)
         surfaceView.setEGLConfigChooser(8, 8, 8, 8, 0, 0)
         surfaceView.setRenderer(this)
         surfaceView.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
     }
 
-    fun requestPreviewRender() {
+    private fun supportsOpenGLES(context: Context): Boolean {
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val configurationInfo = activityManager.deviceConfigurationInfo
+        return configurationInfo.reqGlEsVersion >= 0x20000
+    }
+
+    fun rerenderFilters() {
         queue.add { previewPingPongRenderer?.render(filters) }
         surfaceView.requestRender()
     }
 
     fun setBitmap(bitmap: Bitmap) {
-        queue.add { loadBitmap(bitmap) }
-        requestPreviewRender()
+        queue.add {
+            val isOpenGLThread =
+                (EGLContext.getEGL() as EGL10).eglGetCurrentContext() != EGL10.EGL_NO_CONTEXT
+            Log.e("OpenGL", "is render thread $isOpenGLThread")
+
+            originalTexture.setData(bitmap)
+            previewPingPongRenderer?.initTextures(
+                bitmap.width / downScale,
+                bitmap.height / downScale
+            )
+        }
+        rerenderFilters()
     }
 
     fun setMatrix(matrix: Matrix) {
@@ -64,32 +93,12 @@ class Shaded(
         if (this.downScale == downScaleFactor) return
         this.downScale = downScaleFactor
         queue.add {
-            if (PingPongRenderer.isBitmapStored()) {
-                previewPingPongRenderer?.initTextures(
-                    PingPongRenderer.getBitmapWidth() / downScaleFactor,
-                    PingPongRenderer.getBitmapHeight() / downScaleFactor
-                )
-            }
+            previewPingPongRenderer?.initTextures(
+                originalTexture.width() / downScaleFactor,
+                originalTexture.height() / downScaleFactor
+            )
         }
-        requestPreviewRender()
-    }
-
-    /**
-     * Loads the bitmap data into OpenGL texture [originalTexture]
-     * Loads the bitmap data into the internal preview [PingPongRenderer]s.
-     *
-     * @param bitmap the bitmap to be loaded
-     *
-     * This is meant to be called on a thread with an OpenGL context attached.
-     */
-    private fun loadBitmap(bitmap: Bitmap?) {
-        if (bitmap == null) return
-        PingPongRenderer.storeBitmap(bitmap)
-        PingPongRenderer.loadIntoOpenGl(originalTexture)
-        previewPingPongRenderer?.initTextures(
-            bitmap.width / downScale,
-            bitmap.height / downScale
-        )
+        rerenderFilters()
     }
 
     private fun loadMatrix(matrix: Matrix?) {
@@ -98,65 +107,58 @@ class Shaded(
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        GLES30.glDisable(GLES30.GL_BLEND)
-        GLES30.glDisable(GLES30.GL_DEPTH_TEST)
+        glDisable(GL_BLEND)
+        glDisable(GL_DEPTH_TEST)
 
-        originalTexture = createTexture()
-        PingPongRenderer.loadIntoOpenGl(originalTexture)
+        val vb = VertexBuffer()
+        vb.bind()
+        vb.uploadData(
+            floatArrayOf(
+                //position
+                -1.0f, -1.0f,   //bottom left
+                -1.0f, 1.0f,    //top left
+                1.0f, -1.0f,    //bottom right
+                1.0f, 1.0f,      //top right
 
-        PingPongRenderer.genVertexBuffer()
-
-        val buffer = IntArray(1)
-        GLES30.glGenVertexArrays(1, buffer, 0)
-        val VAO = buffer[0]
-        GLES30.glBindVertexArray(VAO)
-        GLES30.glEnableVertexAttribArray(0)
-        GLES30.glEnableVertexAttribArray(1)
-
-        GLES30.glVertexAttribPointer(
-            1,
-            2,
-            GLES30.GL_FLOAT,
-            false,
-            0,
-            0
+                //uvs
+                0.0f, 0.0f,
+                0.0f, 1.0f,
+                1.0f, 0.0f,
+                1.0f, 1.0f
+            )
         )
 
-        GLES30.glVertexAttribPointer(
-            0,
-            2,
-            GLES30.GL_FLOAT,
-            false,
-            0,
-            4 * 8
-        )
+        val va = VertexArray();
+        va.bind()
+        va.pointer(0, 2, 0, 0)
+        va.pointer(1, 2, 0, 8)
+
+        while (queue.isNotEmpty()) queue.take().invoke()
 
         filters.forEach { it.init() }
 
         screenRenderer = ScreenRenderer(context)
         previewPingPongRenderer = PingPongRenderer(originalTexture)
-        if (PingPongRenderer.isBitmapStored()) {
-            previewPingPongRenderer?.initTextures(
-                PingPongRenderer.getBitmapWidth(),
-                PingPongRenderer.getBitmapHeight()
-            )
-            loadMatrix(matrix)
-            previewPingPongRenderer?.render(filters)
-        }
+        previewPingPongRenderer?.initTextures(
+            originalTexture.width(),
+            originalTexture.height()
+        )
+        loadMatrix(matrix)
+        previewPingPongRenderer?.render(filters)
 
     }
 
     override fun onDrawFrame(unused: GL10) {
         while (queue.isNotEmpty()) queue.take().invoke()
-        GLES30.glViewport(0, 0, viewportWidth, viewportHeight)
+        glViewport(0, 0, viewportWidth, viewportHeight)
         val previewOutputTexture = previewPingPongRenderer?.outputTexture ?: originalTexture
         screenRenderer?.render(previewOutputTexture)
     }
 
     override fun onSurfaceChanged(unused: GL10, width: Int, height: Int) {
-        GLES30.glViewport(0, 0, width, height)
-        viewportWidth = width
-        viewportHeight = height
+        glViewport(0, 0, width, height)
+        this.viewportWidth = width
+        this.viewportHeight = height
     }
 
     /**
@@ -166,13 +168,10 @@ class Shaded(
      */
     fun getBitmap(callback: (Bitmap?) -> Unit) {
         queue.add {
-            if (!PingPongRenderer.isBitmapStored()) {
-                handler.post { callback(null) }
-                return@add
-            }
+            //rescale the image up
             if (downScale != 1) previewPingPongRenderer?.initTextures(
-                PingPongRenderer.getBitmapWidth(),
-                PingPongRenderer.getBitmapHeight()
+                originalTexture.width(),
+                originalTexture.height()
             )
             val bitmap = previewPingPongRenderer?.renderToBitmap(filters)
             handler.post { callback(bitmap) }
@@ -180,16 +179,19 @@ class Shaded(
         surfaceView.requestRender()
     }
 
-    fun queueEvent(event: () -> Unit) {
-        queue.add(event)
-    }
-
     fun destroy() {
-        PingPongRenderer.freeBitmap()
-        queue.clear()
         filters.forEach { it.delete() }
         previewPingPongRenderer?.delete()
         screenRenderer?.delete()
-        GLES30.glDeleteTextures(1, intArrayOf(originalTexture), 0)
+        originalTexture.destroy()
+    }
+
+    fun done() {
+    }
+
+    companion object {
+        init {
+            System.loadLibrary("shaded")
+        }
     }
 }

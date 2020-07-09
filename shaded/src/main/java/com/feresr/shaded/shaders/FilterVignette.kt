@@ -16,10 +16,10 @@ class FilterVignette(context: Context, @Volatile var config: VignetteConfig) :
 
     override fun bindUniforms() {
         super.bindUniforms()
-        vignetteCenter = GLES30.glGetUniformLocation(program, "vignetteCenter")
-        vignetteColor = GLES30.glGetUniformLocation(program, "vignetteColor")
-        vignetteStart = GLES30.glGetUniformLocation(program, "vignetteStart")
-        vignetteEnd = GLES30.glGetUniformLocation(program, "vignetteEnd")
+//        vignetteCenter = GLES30.glGetUniformLocation(program, "vignetteCenter")
+//        vignetteColor = GLES30.glGetUniformLocation(program, "vignetteColor")
+//        vignetteStart = GLES30.glGetUniformLocation(program, "vignetteStart")
+//        vignetteEnd = GLES30.glGetUniformLocation(program, "vignetteEnd")
     }
 
     override fun updateUniforms() {

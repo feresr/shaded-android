@@ -1,65 +1,31 @@
 package com.feresr.shaded
 
 import android.graphics.Bitmap
-import android.opengl.GLES20
-import android.opengl.GLES30
 import android.opengl.GLES30.GL_FRAMEBUFFER
-import android.opengl.GLES30.GL_RGBA
-import android.opengl.GLES30.GL_UNSIGNED_BYTE
 import android.opengl.GLES30.glBindFramebuffer
-import android.opengl.GLES30.glBindTexture
-import android.opengl.GLES30.glDeleteFramebuffers
-import android.opengl.GLES30.glDeleteTextures
-import android.opengl.GLES30.glGenFramebuffers
-import android.opengl.GLES30.glTexImage2D
 import android.opengl.GLES30.glViewport
-import javax.microedition.khronos.opengles.GL10.GL_TEXTURE0
-import javax.microedition.khronos.opengles.GL10.GL_TEXTURE_2D
+import com.feresr.shaded.opengl.FrameBuffer
+import com.feresr.shaded.opengl.Texture
 
 /**
  * This class implements ping-pong rendering between textures for size [width] and [height] starting
  * off from originalTexture (which can be of any size)
  */
-internal class PingPongRenderer(private val originalTexture: Int) {
+internal class PingPongRenderer(private val originalTexture: Texture) {
 
-    private val textures = createTextures(2)
-    private val frameBuffers = IntArray(2).also { glGenFramebuffers(2, it, 0) }
-    private var latestFBO = 0
+    private val textures = Array(2) { Texture() }
+    private val frameBuffers = Array(2) { FrameBuffer() }
+    private var latestFBO: FrameBuffer? = null
     private var width = 0
     private var height = 0
-    var outputTexture = -1
+    var outputTexture: Texture? = null
 
     fun initTextures(width: Int, height: Int) {
-        glBindTexture(GLES30.GL_TEXTURE_2D, textures[0])
-        glTexImage2D(
-            GLES30.GL_TEXTURE_2D,
-            0,
-            GL_RGBA,
-            width,
-            height,
-            0,
-            GL_RGBA,
-            GL_UNSIGNED_BYTE,
-            null
-        )
-        glBindTexture(GLES30.GL_TEXTURE_2D, textures[1])
-        glTexImage2D(
-            GLES30.GL_TEXTURE_2D,
-            0,
-            GL_RGBA,
-            width,
-            height,
-            0,
-            GL_RGBA,
-            GL_UNSIGNED_BYTE,
-            null
-        )
+        textures[0].resize(width, height)
+        textures[1].resize(width, height)
 
-        glBindTexture(GLES30.GL_TEXTURE_2D, 0)
-        frameBuffers.also {
-            attachTextureToFBO(it[0], textures[1])
-            attachTextureToFBO(it[1], textures[0])
-        }
+        frameBuffers[0].setColorAttachment(textures[1])
+        frameBuffers[1].setColorAttachment(textures[0])
 
         this.width = width
         this.height = height
@@ -72,12 +38,10 @@ internal class PingPongRenderer(private val originalTexture: Int) {
         glViewport(0, 0, width, height)
         for ((i, filter) in filters.withIndex()) {
             //read from
-            GLES20.glActiveTexture(GL_TEXTURE0)
-            glBindTexture(GL_TEXTURE_2D, if (i == 0) originalTexture else textures[i % 2])
+            (if (i == 0) originalTexture else textures[i % 2]).bind()
             //write to
-            glBindFramebuffer(GL_FRAMEBUFFER, frameBuffers[i % 2])
+            latestFBO = frameBuffers[i % 2].apply { bind() }
             filter.render()
-            latestFBO = frameBuffers[i % 2]
         }
 
         outputTexture = if (filters.isEmpty()) originalTexture else textures[filters.size % 2]
@@ -86,45 +50,11 @@ internal class PingPongRenderer(private val originalTexture: Int) {
 
     fun renderToBitmap(filters: List<Filter>): Bitmap {
         render(filters)
-        glBindFramebuffer(GL_FRAMEBUFFER, latestFBO)
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        glReadPixelsInto(bitmap)
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        return bitmap
+        return latestFBO?.getBitmap()!!
     }
 
     fun delete() {
-        glDeleteFramebuffers(2, frameBuffers, 0)
-        glDeleteTextures(2, textures, 0)
-    }
-
-    companion object {
-        init {
-            System.loadLibrary("native-lib")
-        }
-
-        @JvmStatic
-        external fun glReadPixelsInto(srcBitmap: Bitmap)
-
-        @JvmStatic
-        external fun loadIntoOpenGl(texture: Int)
-
-        @JvmStatic
-        external fun storeBitmap(srcBitmap: Bitmap)
-
-        @JvmStatic
-        external fun freeBitmap()
-
-        @JvmStatic
-        external fun isBitmapStored(): Boolean
-
-        @JvmStatic
-        external fun getBitmapWidth(): Int
-
-        @JvmStatic
-        external fun getBitmapHeight(): Int
-
-        @JvmStatic
-        external fun genVertexBuffer()
+        frameBuffers.forEach { it.delete() }
+        textures.forEach { it.destroy() }
     }
 }

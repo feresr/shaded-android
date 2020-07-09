@@ -16,22 +16,21 @@ import kotlin.math.sin
 
 class MainActivity : AppCompatActivity() {
 
+    val contrast = FilterContrast(this, cos(0f))
+    val hue = FilterHue(this, sin(0f))
+    val renderer by lazy { Shaded(this, surfaceview, listOf(contrast, hue)) }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main)
 
-        val contrast = FilterContrast(this, cos(0f))
-        val hue = FilterHue(this, sin(0f))
-
-        val renderer = Shaded(this, surfaceview, listOf(contrast, hue))
         renderer.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.ducks))
 
         seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 hue.value = sin(progress.toFloat() / 10f)
                 contrast.contrast = sin(progress.toFloat() / 20f)
-                renderer.requestPreviewRender()
+                renderer.rerenderFilters()
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
@@ -53,13 +52,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onPause() {
+    override fun onStop() {
         surfaceview.onPause()
-        super.onPause()
+        super.onStop()
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onStart() {
+        super.onStart()
         surfaceview.onResume()
+    }
+
+    override fun onDestroy() {
+        renderer.done()
+        super.onDestroy()
     }
 }

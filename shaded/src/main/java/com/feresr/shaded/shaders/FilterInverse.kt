@@ -12,6 +12,6 @@ class FilterInverse(
 
     override fun bindUniforms() {
         super.bindUniforms()
-        GLES30.glUniform1f(GLES30.glGetUniformLocation(program, "alpha"), alpha)
+        shader.setFloat(shader.getUniformLocation("alpha"), alpha)
     }
 }
