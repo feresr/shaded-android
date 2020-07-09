@@ -54,14 +54,16 @@ class Shaded(
         surfaceView.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
     }
 
-    private fun supportsOpenGLES(context: Context): Boolean {
-        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val configurationInfo = activityManager.deviceConfigurationInfo
-        return configurationInfo.reqGlEsVersion >= 0x30000
-    }
-
-    fun rerenderFilters() {
-        queue.add { previewPingPongRenderer?.render(filters) }
+    fun getBitmap(callback: (Bitmap?) -> Unit) {
+        queue.add {
+            //rescale the image up
+            if (downScale != 1) previewPingPongRenderer?.initTextures(
+                originalTexture.width(),
+                originalTexture.height()
+            )
+            val bitmap = previewPingPongRenderer?.renderToBitmap(filters)
+            handler.post { callback(bitmap) }
+        }
         surfaceView.requestRender()
     }
 
@@ -80,10 +82,25 @@ class Shaded(
         rerenderFilters()
     }
 
+    fun done() {
+    }
+
+    fun rerenderFilters() {
+        queue.add { previewPingPongRenderer?.render(filters) }
+        surfaceView.requestRender()
+    }
+
     fun setMatrix(matrix: Matrix) {
         this.matrix = matrix
         queue.add { loadMatrix(matrix) }
         surfaceView.requestRender()
+    }
+
+    fun destroy() {
+        filters.forEach { it.delete() }
+        previewPingPongRenderer?.delete()
+        screenRenderer?.delete()
+        originalTexture.destroy()
     }
 
     /**
@@ -99,6 +116,12 @@ class Shaded(
             )
         }
         rerenderFilters()
+    }
+
+    private fun supportsOpenGLES(context: Context): Boolean {
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val configurationInfo = activityManager.deviceConfigurationInfo
+        return configurationInfo.reqGlEsVersion >= 0x30000
     }
 
     private fun loadMatrix(matrix: Matrix?) {
@@ -159,34 +182,6 @@ class Shaded(
         glViewport(0, 0, width, height)
         this.viewportWidth = width
         this.viewportHeight = height
-    }
-
-    /**
-     * Renders the current frame into a bitmap.
-     * It will re initialize the textures on the ping-pong renderer in order to make it match the
-     * dimensions of the original bitmap. (This has no effect if downScale == 1)
-     */
-    fun getBitmap(callback: (Bitmap?) -> Unit) {
-        queue.add {
-            //rescale the image up
-            if (downScale != 1) previewPingPongRenderer?.initTextures(
-                originalTexture.width(),
-                originalTexture.height()
-            )
-            val bitmap = previewPingPongRenderer?.renderToBitmap(filters)
-            handler.post { callback(bitmap) }
-        }
-        surfaceView.requestRender()
-    }
-
-    fun destroy() {
-        filters.forEach { it.delete() }
-        previewPingPongRenderer?.delete()
-        screenRenderer?.delete()
-        originalTexture.destroy()
-    }
-
-    fun done() {
     }
 
     companion object {

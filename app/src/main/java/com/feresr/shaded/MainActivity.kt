@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
     val bright = FilterBrightness(this, sin(0f))
     val blur = FilterBlur(this, sin(0f), 0f)
     val vig = FilterVignette(this, FilterVignette.VignetteConfig())
-    val renderer by lazy { Shaded(this, surfaceview, listOf(vig)) }
+    val renderer by lazy { Shaded(this, surfaceview, listOf(vig, contrast, hue, inverse, bright, blur)) }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -40,8 +40,8 @@ class MainActivity : AppCompatActivity() {
                 contrast.contrast = sin(progress.toFloat() / 20f)
                 inverse.alpha = cos(progress.toFloat()/100f)
                 bright.brightness = sin(progress.toFloat()/100f)
-                blur.x = sin(progress.toFloat()/100f)
-                blur.y = sin(progress.toFloat()/100f)
+                blur.x = sin(progress.toFloat()/1000f)
+                blur.y = sin(progress.toFloat()/1000f)
                 vig.config = FilterVignette.VignetteConfig(
                     start = sin(progress.toFloat()/50f),
                     center = .5f to .5f
