@@ -28,11 +28,11 @@ class Texture(width: Int? = null, height: Int? = null) {
     }
 
     fun width(): Int {
-        return w ?: throw IllegalStateException("Texture width not initialized");
+        return w ?: throw IllegalStateException("Texture width not initialized")
     }
 
     fun height(): Int {
-        return h ?: throw IllegalStateException("Texture height not initialized");
+        return h ?: throw IllegalStateException("Texture height not initialized")
     }
 
     fun bind() = glBindTexture(GL_TEXTURE_2D, id)
@@ -45,7 +45,7 @@ class Texture(width: Int? = null, height: Int? = null) {
     }
 
     fun resize(width: Int, height: Int) {
-        if (width < 0 || height < 0) throw IllegalArgumentException("Texture width/height can't be less than 0");
+        if (width < 0 || height < 0) throw IllegalArgumentException("Texture width/height can't be less than 0")
         this.w = width
         this.h = height
         bind()
@@ -72,7 +72,7 @@ class Texture(width: Int? = null, height: Int? = null) {
         Log.e("OpenGl", "data texture $id set")
     }
 
-    fun destroy() = deleteTexture(id)
+    fun delete() = deleteTexture(id)
 
     private external fun initTexture(): Int
     private external fun deleteTexture(id: Int)

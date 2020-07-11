@@ -13,6 +13,13 @@ Java_com_feresr_shaded_opengl_VertexArray_initVertexArray(JNIEnv *jenv, jobject 
 
 extern "C"
 JNIEXPORT void JNICALL
+Java_com_feresr_shaded_opengl_VertexArray_bind(JNIEnv *jenv, jobject thiz, jint id) {
+    glBindVertexArray((GLuint) id);
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
 Java_com_feresr_shaded_opengl_VertexArray_deleteVertexArray(JNIEnv *jenv, jobject thiz, jint id) {
     LOGI("VertexArray_deleteVertexArray");
     auto va = (GLuint) id;

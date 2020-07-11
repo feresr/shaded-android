@@ -1,15 +1,11 @@
 package com.feresr.shaded.opengl
 
-import android.opengl.GLES20.GL_ARRAY_BUFFER
-import android.opengl.GLES20.glBindBuffer
-
 
 class VertexBuffer {
-    private val id = initVertexBuffer();
+    private val id = initVertexBuffer()
 
-    fun bind() = glBindBuffer(GL_ARRAY_BUFFER, id)
-    fun unbind() = glBindBuffer(GL_ARRAY_BUFFER, 0)
-
+    fun bind() = bind(id)
+    fun unbind() = bind(0)
 
     fun uploadData(data: FloatArray) {
         bind()
@@ -18,4 +14,5 @@ class VertexBuffer {
 
     private external fun initVertexBuffer(): Int
     private external fun setData(data: FloatArray)
+    private external fun bind(id: Int)
 }

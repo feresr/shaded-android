@@ -55,6 +55,6 @@ internal class PingPongRenderer(private val originalTexture: Texture) {
 
     fun delete() {
         frameBuffers.forEach { it.delete() }
-        textures.forEach { it.destroy() }
+        textures.forEach { it.delete() }
     }
 }

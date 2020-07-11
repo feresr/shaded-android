@@ -26,7 +26,6 @@ Java_com_feresr_shaded_opengl_FrameBuffer_deleteFrameBuffer(JNIEnv *jenv, jobjec
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_feresr_shaded_opengl_FrameBuffer_getBitmap(JNIEnv *jenv, jobject thiz, jobject src) {
-    LOGI("FrameBuffer_getBitmap");
     AndroidBitmapInfo srcInfo;
     int opResult = 0;
     opResult = AndroidBitmap_getInfo(jenv, src, &srcInfo);
@@ -36,7 +35,6 @@ Java_com_feresr_shaded_opengl_FrameBuffer_getBitmap(JNIEnv *jenv, jobject thiz, 
     opResult = AndroidBitmap_lockPixels(jenv, src, (void **) &srcByteBuffer);
     if (opResult != ANDROID_BITMAP_RESULT_SUCCESS) return false;
 
-    //TODO: glReadPixel works with framebuffers, not textures
     glReadPixels(0, 0, srcInfo.width, srcInfo.height, GL_RGBA, GL_UNSIGNED_BYTE, srcByteBuffer);
 
     AndroidBitmap_unlockPixels(jenv, src);

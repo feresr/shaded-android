@@ -28,7 +28,7 @@ import android.opengl.GLES30.glUniform1i
 import android.opengl.GLES30.glUseProgram
 import android.opengl.GLU
 
-class Shader(val name: String, vertexSource: String, fragmentSource: String) {
+class Shader(vertexSource: String, fragmentSource: String) {
     private val program = loadProgram(vertexSource, fragmentSource)
 
     fun bind(block: () -> Unit) {
@@ -73,8 +73,8 @@ class Shader(val name: String, vertexSource: String, fragmentSource: String) {
             )
         }
 
-        glDetachShader(programId, iVShader);
-        glDetachShader(programId, iFShader);
+        glDetachShader(programId, iVShader)
+        glDetachShader(programId, iFShader)
         glDeleteShader(iVShader)
         glDeleteShader(iFShader)
         return programId

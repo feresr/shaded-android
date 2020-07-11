@@ -8,17 +8,18 @@ import com.feresr.shaded.opengl.Shader
 
 abstract class Filter(val context: Context, @RawRes val fshader: Int) {
 
-    protected val shader: Shader by lazy {
-        Shader(
-            "",
-            context.resources.openRawResource(fshader).reader().readText(),
-            context.resources.openRawResource(R.raw.vertex).reader().readText()
-        );
-    }
-
-    fun init() = bindUniforms()
+    private var initialized = false
+    protected lateinit var shader: Shader
 
     fun render() {
+        if (!initialized) {
+            shader = Shader(
+                context.resources.openRawResource(fshader).reader().readText(),
+                context.resources.openRawResource(R.raw.vertex).reader().readText()
+            )
+            bindUniforms()
+            initialized = true
+        }
         shader.bind {
             updateUniforms()
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
@@ -35,5 +36,6 @@ abstract class Filter(val context: Context, @RawRes val fshader: Int) {
 
     fun delete() {
         shader.delete()
+        initialized = false
     }
 }

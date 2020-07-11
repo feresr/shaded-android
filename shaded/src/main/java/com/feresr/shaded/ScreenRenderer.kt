@@ -12,7 +12,6 @@ internal class ScreenRenderer(context: Context) {
 
     private val screenFrameBuffer = FrameBuffer(true)
     private var shader = Shader(
-        "",
         context.resources.openRawResource(R.raw.fragment).reader().readText(),
         context.resources.openRawResource(R.raw.vertexscreen).reader().readText()
     )

@@ -10,21 +10,17 @@ import android.opengl.GLES20.glDisable
 import android.opengl.GLES20.glViewport
 import android.opengl.GLSurfaceView
 import android.os.Handler
-import android.util.Log
 import com.feresr.shaded.opengl.Texture
 import com.feresr.shaded.opengl.VertexArray
 import com.feresr.shaded.opengl.VertexBuffer
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
-import javax.microedition.khronos.egl.EGL10
 import javax.microedition.khronos.egl.EGLConfig
-import javax.microedition.khronos.egl.EGLContext
 import javax.microedition.khronos.opengles.GL10
 
 class Shaded(
     private val context: Context,
-    private val surfaceView: GLSurfaceView,
-    private val filters: List<Filter>
+    private val surfaceView: GLSurfaceView
 ) : GLSurfaceView.Renderer {
 
     /**
@@ -45,13 +41,20 @@ class Shaded(
     private var downScale: Int = 1
     private var viewportWidth = 0
     private var viewportHeight = 0
+    private val filters = mutableListOf<Filter>()
 
-    init {
-        check(supportsOpenGLES(context)) { "OpenGL ES 2.0 is not supported on this device." }
-        surfaceView.setEGLContextClientVersion(3)
-        surfaceView.setEGLConfigChooser(8, 8, 8, 8, 0, 0)
-        surfaceView.setRenderer(this)
-        surfaceView.renderMode = GLSurfaceView.RENDERMODE_WHEN_DIRTY
+    fun addFilter(filter: Filter) = filters.add(filter)
+    fun removeFilter(filter: Filter) = filters.remove(filter)
+
+    fun setBitmap(bitmap: Bitmap) {
+        queue.add {
+            originalTexture.setData(bitmap)
+            previewPingPongRenderer?.initTextures(
+                bitmap.width / downScale,
+                bitmap.height / downScale
+            )
+        }
+        refresh()
     }
 
     fun getBitmap(callback: (Bitmap?) -> Unit) {
@@ -61,31 +64,14 @@ class Shaded(
                 originalTexture.width(),
                 originalTexture.height()
             )
-            val bitmap = previewPingPongRenderer?.renderToBitmap(filters)
+            val bitmap =
+                if (filters.size > 0) previewPingPongRenderer?.renderToBitmap(filters) else null
             handler.post { callback(bitmap) }
         }
         surfaceView.requestRender()
     }
 
-    fun setBitmap(bitmap: Bitmap) {
-        queue.add {
-            val isOpenGLThread =
-                (EGLContext.getEGL() as EGL10).eglGetCurrentContext() != EGL10.EGL_NO_CONTEXT
-            Log.e("OpenGL", "is render thread $isOpenGLThread")
-
-            originalTexture.setData(bitmap)
-            previewPingPongRenderer?.initTextures(
-                bitmap.width / downScale,
-                bitmap.height / downScale
-            )
-        }
-        rerenderFilters()
-    }
-
-    fun done() {
-    }
-
-    fun rerenderFilters() {
+    fun refresh() {
         queue.add { previewPingPongRenderer?.render(filters) }
         surfaceView.requestRender()
     }
@@ -96,11 +82,12 @@ class Shaded(
         surfaceView.requestRender()
     }
 
-    fun destroy() {
+    fun dispose() {
+        queue.clear()
         filters.forEach { it.delete() }
         previewPingPongRenderer?.delete()
         screenRenderer?.delete()
-        originalTexture.destroy()
+        originalTexture.delete()
     }
 
     /**
@@ -115,7 +102,7 @@ class Shaded(
                 originalTexture.height() / downScaleFactor
             )
         }
-        rerenderFilters()
+        refresh()
     }
 
     private fun supportsOpenGLES(context: Context): Boolean {
@@ -151,14 +138,12 @@ class Shaded(
             )
         )
 
-        val va = VertexArray();
+        val va = VertexArray()
         va.bind()
-        va.pointer(0, 2, 0, 0)
-        va.pointer(1, 2, 0, 8)
+        va.pointer(0, 2, 0, 0) // positions
+        va.pointer(1, 2, 0, 8) // uv's
 
         while (queue.isNotEmpty()) queue.take().invoke()
-
-        filters.forEach { it.init() }
 
         screenRenderer = ScreenRenderer(context)
         previewPingPongRenderer = PingPongRenderer(originalTexture)
@@ -168,7 +153,6 @@ class Shaded(
         )
         loadMatrix(matrix)
         previewPingPongRenderer?.render(filters)
-
     }
 
     override fun onDrawFrame(unused: GL10) {
