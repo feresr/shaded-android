@@ -2,7 +2,6 @@ package com.feresr.shaded
 
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.util.Log
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import com.feresr.shaded.shaders.FilterBlur
@@ -28,32 +27,27 @@ class MainActivity : AppCompatActivity() {
     val blur = FilterBlur(this, sin(0f), 0f)
     val vig = FilterVignette(this, FilterVignette.VignetteConfig())
 
+    private val filters = arrayOf(contrast, hue, inverse, bright, blur, vig)
+    private var filterIndex = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_main)
 
-        surfaceview.addFilter(hue)
-        surfaceview.addFilter(vig)
-        surfaceview.addFilter(contrast)
-        surfaceview.addFilter(blur)
-        surfaceview.addFilter(inverse)
-        surfaceview.addFilter(bright)
-
         surfaceview.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.ducks))
 
         clearBitmapButton.setOnClickListener {
-            surfaceview.removeFilter(vig)
-            surfaceview.refresh()
-            vig.delete()
+            if (filterIndex > 0) {
+                filterIndex--
+                surfaceview.removeFilter(filters[(filterIndex % filters.size)])
+                surfaceview.refresh()
+            }
         }
         setBitmapButton.setOnClickListener {
-            surfaceview.setBitmap(
-                BitmapFactory.decodeResource(
-                    resources,
-                    R.drawable.ducks
-                )
-            )
+            surfaceview.addFilter(filters[filterIndex % filters.size])
+            filterIndex++
+            surfaceview.refresh()
         }
     }
 
@@ -78,22 +72,17 @@ class MainActivity : AppCompatActivity() {
                     start = sin(progress.toFloat() / 50f),
                     center = .5f to .5f
                 )
-                Log.i("MainActivity", "onProgressChanged")
                 surfaceview.refresh()
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
                 // Optional: downscale (better performance on large bitmaps)
-                Log.i("MainActivity", "onStartTrackingTouch")
                 surfaceview.scale(10)
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                Log.i("MainActivity", "onStopTrackingTouch1")
                 surfaceview.scale(1)
-                Log.i("MainActivity", "onStopTrackingTouch2")
                 surfaceview.getBitmap { result.setImageBitmap(it) }
-                Log.i("MainActivity", "onStopTrackingTouch3")
             }
         })
     }
