@@ -1,6 +1,5 @@
 package com.feresr.shaded
 
-import android.app.ActivityManager
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -18,10 +17,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class Shaded(
-    private val context: Context,
-    private val surfaceView: GLSurfaceView
-) : GLSurfaceView.Renderer {
+class Shaded(private val context: Context) : GLSurfaceView.Renderer {
 
     /**
      * Using own Queue implementation as opposed to [GLSurfaceView.queueEvent].
@@ -54,7 +50,7 @@ class Shaded(
                 bitmap.height / downScale
             )
         }
-        refresh()
+        render()
     }
 
     fun getBitmap(callback: (Bitmap?) -> Unit) {
@@ -68,18 +64,14 @@ class Shaded(
                 if (filters.size > 0) previewPingPongRenderer?.renderToBitmap(filters) else null
             handler.post { callback(bitmap) }
         }
-        surfaceView.requestRender()
     }
 
-    fun refresh() {
-        queue.add { previewPingPongRenderer?.render(filters) }
-        surfaceView.requestRender()
-    }
+    fun render() = queue.add { previewPingPongRenderer?.render(filters) }
 
     fun setMatrix(matrix: Matrix) {
         this.matrix = matrix
         queue.add { loadMatrix(matrix) }
-        surfaceView.requestRender()
+        //surfaceView.requestRender()
     }
 
     fun dispose() {
@@ -102,13 +94,7 @@ class Shaded(
                 originalTexture.height() / downScaleFactor
             )
         }
-        refresh()
-    }
-
-    private fun supportsOpenGLES(context: Context): Boolean {
-        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val configurationInfo = activityManager.deviceConfigurationInfo
-        return configurationInfo.reqGlEsVersion >= 0x30000
+        render()
     }
 
     private fun loadMatrix(matrix: Matrix?) {

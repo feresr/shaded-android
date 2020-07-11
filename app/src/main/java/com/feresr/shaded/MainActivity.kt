@@ -33,21 +33,22 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        surfaceview.renderer.addFilter(hue)
-        surfaceview.renderer.addFilter(vig)
-        surfaceview.renderer.addFilter(contrast)
-        surfaceview.renderer.addFilter(blur)
-        surfaceview.renderer.addFilter(inverse)
-        surfaceview.renderer.addFilter(bright)
+        surfaceview.addFilter(hue)
+        surfaceview.addFilter(vig)
+        surfaceview.addFilter(contrast)
+        surfaceview.addFilter(blur)
+        surfaceview.addFilter(inverse)
+        surfaceview.addFilter(bright)
 
-        surfaceview.renderer.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.ducks))
+        surfaceview.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.ducks))
 
         clearBitmapButton.setOnClickListener {
-            surfaceview.renderer.removeFilter(vig)
+            surfaceview.removeFilter(vig)
+            surfaceview.refresh()
             vig.delete()
         }
         setBitmapButton.setOnClickListener {
-            surfaceview.renderer.setBitmap(
+            surfaceview.setBitmap(
                 BitmapFactory.decodeResource(
                     resources,
                     R.drawable.ducks
@@ -78,20 +79,20 @@ class MainActivity : AppCompatActivity() {
                     center = .5f to .5f
                 )
                 Log.i("MainActivity", "onProgressChanged")
-                surfaceview.renderer.refresh()
+                surfaceview.refresh()
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
                 // Optional: downscale (better performance on large bitmaps)
                 Log.i("MainActivity", "onStartTrackingTouch")
-                surfaceview.renderer.downScale(10)
+                surfaceview.scale(10)
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 Log.i("MainActivity", "onStopTrackingTouch1")
-                surfaceview.renderer.downScale(1)
+                surfaceview.scale(1)
                 Log.i("MainActivity", "onStopTrackingTouch2")
-                surfaceview.renderer.getBitmap { result.setImageBitmap(it) }
+                surfaceview.getBitmap { result.setImageBitmap(it) }
                 Log.i("MainActivity", "onStopTrackingTouch3")
             }
         })
