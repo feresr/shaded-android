@@ -11,6 +11,7 @@ import com.feresr.shaded.shaders.FilterContrast
 import com.feresr.shaded.shaders.FilterHue
 import com.feresr.shaded.shaders.FilterInverse
 import com.feresr.shaded.shaders.FilterVignette
+import kotlinx.android.synthetic.main.activity_main.changeBitmap
 import kotlinx.android.synthetic.main.activity_main.clearBitmapButton
 import kotlinx.android.synthetic.main.activity_main.result
 import kotlinx.android.synthetic.main.activity_main.seekbar
@@ -29,6 +30,9 @@ class MainActivity : AppCompatActivity() {
     val vig = FilterVignette(this, FilterVignette.VignetteConfig())
 
     private val filters = arrayOf(contrast, hue, inverse, bright, blur, vig)
+    private val bitmaps =
+        arrayOf(R.drawable.square, R.drawable.duck, R.drawable.tv, R.drawable.ducks)
+    private var currentBitmap = 0
     private var filterIndex = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,10 +42,10 @@ class MainActivity : AppCompatActivity() {
 
         val options = BitmapFactory.Options()
         options.inScaled = false
-        surfaceview.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.ducks, options))
+        surfaceview.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.square, options))
         surfaceview.setOnTouchListener { _, event ->
-            when(event.action) {
-                MotionEvent.ACTION_MOVE-> surfaceview.setZoom(event.rawY / 1000f)
+            when (event.action) {
+                MotionEvent.ACTION_MOVE -> surfaceview.setZoom(event.rawY / 1000f)
             }
             return@setOnTouchListener true
         }
@@ -54,6 +58,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        changeBitmap.setOnClickListener {
+            surfaceview.setBitmap(
+                BitmapFactory.decodeResource(
+                    resources,
+                    bitmaps[currentBitmap % bitmaps.size],
+                    options
+                )
+            )
+            currentBitmap++
+        }
         setBitmapButton.setOnClickListener {
             surfaceview.addFilter(filters[filterIndex % filters.size])
             filterIndex++
