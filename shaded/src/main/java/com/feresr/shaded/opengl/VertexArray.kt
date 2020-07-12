@@ -1,6 +1,6 @@
 package com.feresr.shaded.opengl
 
-class VertexArray {
+internal class VertexArray {
 
     val id = initVertexArray()
 

@@ -9,7 +9,7 @@ import android.opengl.GLES30.glBindTexture
 import android.opengl.GLES30.glTexImage2D
 import android.util.Log
 
-class Texture(width: Int? = null, height: Int? = null) {
+internal class Texture(width: Int? = null, height: Int? = null) {
 
     val id = initTexture()
 

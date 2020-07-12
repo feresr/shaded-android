@@ -9,7 +9,7 @@ import android.opengl.GLES30.glCheckFramebufferStatus
 import android.opengl.GLES30.glFramebufferTexture2D
 import javax.microedition.khronos.opengles.GL10
 
-class FrameBuffer(private val isScreenBuffer: Boolean = false) {
+internal class FrameBuffer(private val isScreenBuffer: Boolean = false) {
 
     private val id: Int = if (isScreenBuffer) 0 else initFrameBuffer()
     private var colorAttachment: Texture? = null

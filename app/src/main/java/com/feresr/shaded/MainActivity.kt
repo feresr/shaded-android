@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
                 surfaceview.refresh()
             }
         }
+
         setBitmapButton.setOnClickListener {
             surfaceview.addFilter(filters[filterIndex % filters.size])
             filterIndex++

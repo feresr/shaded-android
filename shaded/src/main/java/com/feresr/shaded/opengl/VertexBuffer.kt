@@ -1,7 +1,6 @@
 package com.feresr.shaded.opengl
 
-
-class VertexBuffer {
+internal class VertexBuffer {
     private val id = initVertexBuffer()
 
     fun bind() = bind(id)
