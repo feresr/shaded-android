@@ -2,6 +2,7 @@ package com.feresr.shaded
 
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.view.MotionEvent
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import com.feresr.shaded.shaders.FilterBlur
@@ -37,7 +38,13 @@ class MainActivity : AppCompatActivity() {
 
         val options = BitmapFactory.Options()
         options.inScaled = false
-        surfaceview.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.duck, options))
+        surfaceview.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.ducks, options))
+        surfaceview.setOnTouchListener { _, event ->
+            when(event.action) {
+                MotionEvent.ACTION_MOVE-> surfaceview.setZoom(event.rawY / 1000f)
+            }
+            return@setOnTouchListener true
+        }
 
         clearBitmapButton.setOnClickListener {
             if (filterIndex > 0) {

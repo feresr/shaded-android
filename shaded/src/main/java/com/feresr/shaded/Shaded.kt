@@ -39,6 +39,7 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
     private var viewportWidth = 0
     private var viewportHeight = 0
     private val filters = mutableListOf<Filter>()
+    var zoom = 0.0f
 
     fun addFilter(filter: Filter) = filters.add(filter)
     fun removeFilter(filter: Filter) = filters.remove(filter)
@@ -95,8 +96,6 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         glDisable(GL_BLEND)
         glDisable(GL_DEPTH_TEST)
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
-        glClear(GL_COLOR_BUFFER_BIT)
 
         val vb = VertexBuffer()
         vb.bind()
@@ -133,13 +132,16 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
     }
 
     override fun onDrawFrame(unused: GL10) {
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
+        glClear(GL_COLOR_BUFFER_BIT)
         while (queue.isNotEmpty()) queue.take().invoke()
         previewPingPongRenderer?.let {
             glViewport(0, 0, viewportWidth, viewportHeight)
             screenRenderer?.render(
                 it.getOutputTexture(),
-                viewportHeight.toFloat() / viewportWidth.toFloat(),
-                it.width.toFloat() / it.height.toFloat()
+                 viewportWidth.toFloat() / viewportHeight.toFloat(),
+                it.width.toFloat() / it.height.toFloat(),
+                zoom
             )
         }
 
@@ -150,7 +152,6 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
         this.viewportWidth = width
         this.viewportHeight = height
     }
-
     companion object {
         init {
             System.loadLibrary("shaded")

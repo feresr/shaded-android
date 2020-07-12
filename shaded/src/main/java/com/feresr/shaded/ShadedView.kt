@@ -48,6 +48,11 @@ class ShadedView @JvmOverloads constructor(context: Context, attrs: AttributeSet
         super.onDetachedFromWindow()
     }
 
+    fun setZoom(z : Float) {
+        renderer.zoom = z
+        requestRender()
+    }
+
     private fun supportsOpenGLES(context: Context): Boolean {
         val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val configurationInfo = activityManager.deviceConfigurationInfo

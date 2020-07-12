@@ -1,7 +1,6 @@
 package com.feresr.shaded.shaders
 
 import android.content.Context
-import android.renderscript.Matrix4f
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 
@@ -10,9 +9,9 @@ import com.feresr.shaded.R
  */
 internal class ScreenFilter(context: Context) : Filter(context, vshader = R.raw.vertexscreen) {
 
-    var model: Matrix4f = Matrix4f()
-    var camera: Matrix4f = Matrix4f()
-    var projection: Matrix4f = Matrix4f()
+    var model: FloatArray = FloatArray(16)
+    var camera: FloatArray = FloatArray(16)
+    var projection: FloatArray = FloatArray(16)
 
     private var modelLocation = 0
     private var camLocation = 0
@@ -27,9 +26,9 @@ internal class ScreenFilter(context: Context) : Filter(context, vshader = R.raw.
 
     override fun updateUniforms() {
         super.updateUniforms()
-        shader.setMat4(modelLocation, model)
+        shader.setMat4(modelLocation, model )
         shader.setMat4(camLocation, camera)
-        shader.setMat4(projLocation, projection)
+        shader.setMat4(projLocation, projection, true)
     }
 
 }

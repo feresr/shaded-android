@@ -49,12 +49,9 @@ class Shader(vertexSource: String, fragmentSource: String) {
     fun setFloat4(location: Int, r: Float, g: Float, b: Float, w: Float) =
         glUniform4f(location, r, g, b, w)
 
-    fun setMat4(location: Int, mat: Matrix4f) {
-        glUniformMatrix4fv(location, 1, true, mat.array, 0)
+    fun setMat4(location: Int, mat: FloatArray, transpose : Boolean = false) {
+        glUniformMatrix4fv(location, 1, transpose, mat, 0)
     }
-    //TODO:
-    //virtual void setMat4(const std::string &name, const glm::mat4 &matrix);
-
     fun delete() = glDeleteProgram(program)
 
     private fun loadProgram(fragmentShader: String, vertexShader: String): Int {
