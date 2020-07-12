@@ -35,7 +35,9 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        surfaceview.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.ducks))
+        val options = BitmapFactory.Options()
+        options.inScaled = false
+        surfaceview.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.duck, options))
 
         clearBitmapButton.setOnClickListener {
             if (filterIndex > 0) {
@@ -78,7 +80,7 @@ class MainActivity : AppCompatActivity() {
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
                 // Optional: downscale (better performance on large bitmaps)
-                surfaceview.scale(10)
+                surfaceview.scale(2)
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {

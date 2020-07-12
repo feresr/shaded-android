@@ -2,9 +2,11 @@ package com.feresr.shaded
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Matrix
 import android.opengl.GLES20.GL_BLEND
+import android.opengl.GLES20.GL_COLOR_BUFFER_BIT
 import android.opengl.GLES20.GL_DEPTH_TEST
+import android.opengl.GLES20.glClear
+import android.opengl.GLES20.glClearColor
 import android.opengl.GLES20.glDisable
 import android.opengl.GLES20.glViewport
 import android.opengl.GLSurfaceView
@@ -33,7 +35,6 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
     private var screenRenderer: ScreenRenderer? = null
     private var previewPingPongRenderer: PingPongRenderer? = null
     private val originalTexture: Texture by lazy { Texture() }
-    private var matrix: Matrix? = null
     private var downScale: Int = 1
     private var viewportWidth = 0
     private var viewportHeight = 0
@@ -68,12 +69,6 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
 
     fun render() = queue.add { previewPingPongRenderer?.render(filters) }
 
-    fun setMatrix(matrix: Matrix) {
-        this.matrix = matrix
-        queue.add { loadMatrix(matrix) }
-        //surfaceView.requestRender()
-    }
-
     fun dispose() {
         queue.clear()
         filters.forEach { it.delete() }
@@ -97,26 +92,23 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
         render()
     }
 
-    private fun loadMatrix(matrix: Matrix?) {
-        if (matrix == null) return
-        screenRenderer?.setMatrix(matrix)
-    }
-
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         glDisable(GL_BLEND)
         glDisable(GL_DEPTH_TEST)
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
+        glClear(GL_COLOR_BUFFER_BIT)
 
         val vb = VertexBuffer()
         vb.bind()
         vb.uploadData(
             floatArrayOf(
-                //position
+                // position
                 -1.0f, -1.0f,   //bottom left
                 -1.0f, 1.0f,    //top left
                 1.0f, -1.0f,    //bottom right
-                1.0f, 1.0f,      //top right
+                1.0f, 1.0f,     //top right
 
-                //uvs
+                // UV's
                 0.0f, 0.0f,
                 0.0f, 1.0f,
                 1.0f, 0.0f,
@@ -137,15 +129,20 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
             originalTexture.width(),
             originalTexture.height()
         )
-        loadMatrix(matrix)
         previewPingPongRenderer?.render(filters)
     }
 
     override fun onDrawFrame(unused: GL10) {
         while (queue.isNotEmpty()) queue.take().invoke()
-        glViewport(0, 0, viewportWidth, viewportHeight)
-        val previewOutputTexture = previewPingPongRenderer?.outputTexture ?: originalTexture
-        screenRenderer?.render(previewOutputTexture)
+        previewPingPongRenderer?.let {
+            glViewport(0, 0, viewportWidth, viewportHeight)
+            screenRenderer?.render(
+                it.getOutputTexture(),
+                viewportHeight.toFloat() / viewportWidth.toFloat(),
+                it.width.toFloat() / it.height.toFloat()
+            )
+        }
+
     }
 
     override fun onSurfaceChanged(unused: GL10, width: Int, height: Int) {

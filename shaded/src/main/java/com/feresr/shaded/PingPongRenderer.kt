@@ -16,9 +16,9 @@ internal class PingPongRenderer(private val originalTexture: Texture) {
     private val textures = Array(2) { Texture() }
     private val frameBuffers = Array(2) { FrameBuffer() }
     private var latestFBO: FrameBuffer? = null
-    private var width = 0
-    private var height = 0
-    var outputTexture: Texture? = null
+    var width = 0
+    var height = 0
+    private var outputTexture: Texture? = null
 
     fun initTextures(width: Int, height: Int) {
         textures[0].resize(width, height)
@@ -29,6 +29,10 @@ internal class PingPongRenderer(private val originalTexture: Texture) {
 
         this.width = width
         this.height = height
+    }
+
+    fun getOutputTexture(): Texture {
+        return outputTexture ?: originalTexture
     }
 
     /**

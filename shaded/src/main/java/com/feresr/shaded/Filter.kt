@@ -6,7 +6,11 @@ import android.opengl.GLES30.glDrawArrays
 import androidx.annotation.RawRes
 import com.feresr.shaded.opengl.Shader
 
-abstract class Filter(val context: Context, @RawRes val fshader: Int) {
+abstract class Filter(
+    val context: Context,
+    @RawRes val fshader: Int = R.raw.fragment,
+    @RawRes val vshader: Int = R.raw.vertex
+) {
 
     private var initialized = false
     protected lateinit var shader: Shader
@@ -15,7 +19,7 @@ abstract class Filter(val context: Context, @RawRes val fshader: Int) {
         if (!initialized) {
             shader = Shader(
                 context.resources.openRawResource(fshader).reader().readText(),
-                context.resources.openRawResource(R.raw.vertex).reader().readText()
+                context.resources.openRawResource(vshader).reader().readText()
             )
             bindUniforms()
             initialized = true

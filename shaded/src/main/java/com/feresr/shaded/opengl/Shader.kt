@@ -5,6 +5,7 @@ import android.opengl.GLES20.glDetachShader
 import android.opengl.GLES20.glUniform2f
 import android.opengl.GLES20.glUniform3f
 import android.opengl.GLES20.glUniform4f
+import android.opengl.GLES20.glUniformMatrix4fv
 import android.opengl.GLES30.GL_COMPILE_STATUS
 import android.opengl.GLES30.GL_FRAGMENT_SHADER
 import android.opengl.GLES30.GL_LINK_STATUS
@@ -27,6 +28,7 @@ import android.opengl.GLES30.glUniform1f
 import android.opengl.GLES30.glUniform1i
 import android.opengl.GLES30.glUseProgram
 import android.opengl.GLU
+import android.renderscript.Matrix4f
 
 class Shader(vertexSource: String, fragmentSource: String) {
     private val program = loadProgram(vertexSource, fragmentSource)
@@ -47,6 +49,9 @@ class Shader(vertexSource: String, fragmentSource: String) {
     fun setFloat4(location: Int, r: Float, g: Float, b: Float, w: Float) =
         glUniform4f(location, r, g, b, w)
 
+    fun setMat4(location: Int, mat: Matrix4f) {
+        glUniformMatrix4fv(location, 1, true, mat.array, 0)
+    }
     //TODO:
     //virtual void setMat4(const std::string &name, const glm::mat4 &matrix);
 

@@ -1,37 +1,26 @@
 package com.feresr.shaded
 
 import android.content.Context
-import android.graphics.Matrix
-import android.opengl.GLES10.glDrawArrays
-import android.opengl.GLES30.GL_TRIANGLE_STRIP
 import com.feresr.shaded.opengl.FrameBuffer
-import com.feresr.shaded.opengl.Shader
 import com.feresr.shaded.opengl.Texture
+import com.feresr.shaded.shaders.ScreenFilter
 
 internal class ScreenRenderer(context: Context) {
 
     private val screenFrameBuffer = FrameBuffer(true)
-    private var shader = Shader(
-        context.resources.openRawResource(R.raw.fragment).reader().readText(),
-        context.resources.openRawResource(R.raw.vertexscreen).reader().readText()
-    )
+    private val screenFilter = ScreenFilter(context)
 
-    fun render(readFromTexture: Texture) {
-        shader.bind {
-            readFromTexture.bind()
-            screenFrameBuffer.bind()
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
-            screenFrameBuffer.unbind()
-        }
-    }
-
-    fun setMatrix(matrix: Matrix) {
-        val array = FloatArray(8)
-        //TODO: matrix.mapPoints(array, TEX_VERTICES)
+    fun render(readFromTexture: Texture, screenRatio: Float, modelRatio: Float) {
+        screenFilter.model.loadIdentity()
+        screenFilter.model.scale(modelRatio, 1f, 1f)  //scale quad to picture aspect-ratio
+        screenFilter.projection.loadIdentity()
+        screenFilter.projection.scale(screenRatio, 1f, 1f) //scale quad to view port aspect-ratio
+        readFromTexture.bind()
+        screenFilter.render()
     }
 
     fun delete() {
-        shader.delete()
+        screenFilter.delete()
         screenFrameBuffer.delete()
     }
 }
