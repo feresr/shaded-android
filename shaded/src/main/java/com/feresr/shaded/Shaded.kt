@@ -39,7 +39,7 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
     private var viewportWidth = 0
     private var viewportHeight = 0
     private val filters = mutableListOf<Filter>()
-    var zoom = 0.0f
+    var zoom = 1.0f
 
     fun addFilter(filter: Filter) = filters.add(filter)
     fun removeFilter(filter: Filter) = filters.remove(filter)

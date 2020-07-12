@@ -12,11 +12,12 @@ internal class ScreenRenderer(context: Context) {
 
     private val screenFrameBuffer = FrameBuffer(true)
     private val screenFilter = ScreenFilter(context)
-    private val snapSensitivity = 1f
+    private val snapSensitivity = .5f
     private val cameraDistance = 2f
     private val snapTo = (atan(.5f / cameraDistance) * 180f / PI.toFloat())
 
     fun render(readFromTexture: Texture, screenRatio: Float, modelRatio: Float, zoom: Float) {
+        if (zoom <= 0) throw IllegalArgumentException("Zoom level must be greater than 0")
         //Model
         Matrix.setIdentityM(screenFilter.model, 0)
         Matrix.scaleM(screenFilter.model, 0, modelRatio, 1f, 0f)
@@ -37,7 +38,7 @@ internal class ScreenRenderer(context: Context) {
         )
 
         //Projection (perspective allows for zooming in/out)
-        var fov = (zoom * snapTo).coerceIn(10f, 135f)
+        var fov = snapTo / zoom
         if (fov in (snapTo - snapSensitivity)..(snapTo + snapSensitivity)) fov = snapTo
         Matrix.perspectiveM(
             screenFilter.projection,

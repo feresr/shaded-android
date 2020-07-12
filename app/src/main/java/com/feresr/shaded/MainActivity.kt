@@ -2,7 +2,7 @@ package com.feresr.shaded
 
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import com.feresr.shaded.shaders.FilterBlur
@@ -43,10 +43,19 @@ class MainActivity : AppCompatActivity() {
         val options = BitmapFactory.Options()
         options.inScaled = false
         surfaceview.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.square, options))
+
+        val scaleGestureDetector =
+            ScaleGestureDetector(this, object : ScaleGestureDetector.OnScaleGestureListener {
+                override fun onScaleBegin(detector: ScaleGestureDetector?): Boolean = true
+                override fun onScaleEnd(detector: ScaleGestureDetector?) {}
+                override fun onScale(detector: ScaleGestureDetector): Boolean {
+                    surfaceview.setZoom(detector.scaleFactor)
+                    return true
+                }
+            })
+
         surfaceview.setOnTouchListener { _, event ->
-            when (event.action) {
-                MotionEvent.ACTION_MOVE -> surfaceview.setZoom(event.rawY / 1000f)
-            }
+            scaleGestureDetector.onTouchEvent(event)
             return@setOnTouchListener true
         }
 
