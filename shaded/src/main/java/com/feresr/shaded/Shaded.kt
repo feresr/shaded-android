@@ -46,12 +46,8 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
     private var cameraX = 0.0f
     private var cameraY = 0.0f
 
-    private val snapSensitivity = 4f
-
     private var zoom = 1f
-    private val cameraZ = 2f
-    private val halfQuadHeight = 1f
-    private val snapYTo = atan(halfQuadHeight / cameraZ) * (180f / PI.toFloat()) * 2
+    private val snapYTo = atan(HALF_QUAD / CAMERAZ) * (180f / PI.toFloat()) * 2
     private var fov = snapYTo
 
     fun changeZoomBy(z: Float) {
@@ -68,16 +64,16 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
     }
 
     private fun checkBounds() {
-        if (fov in (snapYTo - snapSensitivity)..(snapYTo + snapSensitivity)) fov = snapYTo
+        if (fov in (snapYTo - SNAP_SENSITIVITY)..(snapYTo + SNAP_SENSITIVITY)) fov = snapYTo
         if (fov >= snapYTo) {
             cameraY = 0f
         } else {
-            val fovOpposite = cameraZ * tan((fov / 2) * PI.toFloat() / 180f)
-            if (cameraY + fovOpposite >= 1) cameraY = 1 - fovOpposite
-            if (cameraY - fovOpposite <= -1) cameraY = -1 + fovOpposite
+            val fovOpposite = CAMERAZ * tan((fov / 2f) * PI.toFloat() / 180f)
+            if (cameraY + fovOpposite >= HALF_QUAD) cameraY = HALF_QUAD - fovOpposite
+            if (cameraY - fovOpposite <= -HALF_QUAD) cameraY = -HALF_QUAD + fovOpposite
         }
 
-        cameraX = cameraX.coerceIn(-1f, 1f)
+        cameraX = cameraX.coerceIn(-HALF_QUAD, HALF_QUAD)
     }
 
     fun addFilter(filter: Filter) = filters.add(filter)
@@ -183,7 +179,7 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
                 fov,
                 cameraX,
                 cameraY,
-                cameraZ
+                CAMERAZ
             )
         }
 
@@ -199,5 +195,9 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
         init {
             System.loadLibrary("shaded")
         }
+
+        const val CAMERAZ = 2f
+        const val HALF_QUAD = 1f
+        const val SNAP_SENSITIVITY = 4f
     }
 }
