@@ -26,9 +26,9 @@ internal class ScreenFilter(context: Context) : Filter(context, vshader = R.raw.
 
     override fun updateUniforms() {
         super.updateUniforms()
-        shader.setMat4(modelLocation, model )
+        shader.setMat4(modelLocation, model)
         shader.setMat4(camLocation, camera)
-        shader.setMat4(projLocation, projection, true)
+        shader.setMat4(projLocation, projection)
     }
 
 }

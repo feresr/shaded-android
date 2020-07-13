@@ -49,8 +49,12 @@ class ShadedView @JvmOverloads constructor(context: Context, attrs: AttributeSet
     }
 
     fun setZoom(z : Float) {
-        renderer.zoom *= z
-        renderer.zoom = renderer.zoom.coerceIn(.25f, 4f)
+        renderer.changeZoomBy(z)
+        requestRender()
+    }
+
+    fun setMove(x : Float, y : Float) {
+        renderer.moveCameraBy(x, y)
         requestRender()
     }
 

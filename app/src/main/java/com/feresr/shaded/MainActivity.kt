@@ -2,9 +2,12 @@ package com.feresr.shaded
 
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.view.MotionEvent
+import android.view.MotionEvent.INVALID_POINTER_ID
 import android.view.ScaleGestureDetector
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
+import com.feresr.shaded.R.drawable
 import com.feresr.shaded.shaders.FilterBlur
 import com.feresr.shaded.shaders.FilterBrightness
 import com.feresr.shaded.shaders.FilterContrast
@@ -30,8 +33,7 @@ class MainActivity : AppCompatActivity() {
     val vig = FilterVignette(this, FilterVignette.VignetteConfig())
 
     private val filters = arrayOf(contrast, hue, inverse, bright, blur, vig)
-    private val bitmaps =
-        arrayOf(R.drawable.square, R.drawable.duck, R.drawable.tv, R.drawable.ducks)
+    private val bitmaps = arrayOf(drawable.duck, drawable.tv, drawable.ducks, drawable.square)
     private var currentBitmap = 0
     private var filterIndex = 0
 
@@ -42,7 +44,7 @@ class MainActivity : AppCompatActivity() {
 
         val options = BitmapFactory.Options()
         options.inScaled = false
-        surfaceview.setBitmap(BitmapFactory.decodeResource(resources, R.drawable.square, options))
+        surfaceview.setBitmap(BitmapFactory.decodeResource(resources, drawable.square, options))
 
         val scaleGestureDetector =
             ScaleGestureDetector(this, object : ScaleGestureDetector.OnScaleGestureListener {
@@ -54,8 +56,48 @@ class MainActivity : AppCompatActivity() {
                 }
             })
 
-        surfaceview.setOnTouchListener { _, event ->
-            scaleGestureDetector.onTouchEvent(event)
+        var lastTouchX = 0f
+        var lastTouchY = 0f
+        var activePointerId = 0
+
+        surfaceview.setOnTouchListener { v, event ->
+            if (event.pointerCount >= 2) scaleGestureDetector.onTouchEvent(event)
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    activePointerId = event.getPointerId(0)
+                    lastTouchX = event.x
+                    lastTouchY = event.y
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    if (activePointerId != INVALID_POINTER_ID) {
+                        if (event.pointerCount == 1) {
+                            val (x: Float, y: Float) = event.x to event.y
+                            surfaceview.setMove(
+                                (lastTouchX - x),
+                                (y - lastTouchY)
+                            )
+                            lastTouchX = x
+                            lastTouchY = y
+                        }
+
+                    }
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    activePointerId = INVALID_POINTER_ID
+                    v.performClick()
+                }
+                MotionEvent.ACTION_POINTER_UP -> {
+
+                    event.getPointerId(event.actionIndex).takeIf {
+                        it == activePointerId
+                    }?.run {
+                        val newPointerIndex = if (event.actionIndex == 0) 1 else 0
+                        lastTouchX = event.getX(newPointerIndex)
+                        lastTouchY = event.getY(newPointerIndex)
+                        activePointerId = event.getPointerId(newPointerIndex)
+                    }
+                }
+            }
             return@setOnTouchListener true
         }
 

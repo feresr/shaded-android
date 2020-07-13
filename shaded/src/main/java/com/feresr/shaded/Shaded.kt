@@ -18,6 +18,9 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
+import kotlin.math.PI
+import kotlin.math.atan
+import kotlin.math.tan
 
 class Shaded(private val context: Context) : GLSurfaceView.Renderer {
 
@@ -39,7 +42,43 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
     private var viewportWidth = 0
     private var viewportHeight = 0
     private val filters = mutableListOf<Filter>()
-    var zoom = 1.0f
+
+    private var cameraX = 0.0f
+    private var cameraY = 0.0f
+
+    private val snapSensitivity = 4f
+
+    private var zoom = 1f
+    private val cameraZ = 2f
+    private val halfQuadHeight = 1f
+    private val snapYTo = atan(halfQuadHeight / cameraZ) * (180f / PI.toFloat()) * 2
+    private var fov = snapYTo
+
+    fun changeZoomBy(z: Float) {
+        zoom *= z
+        zoom = zoom.coerceIn(.5f, 4f)
+        fov = snapYTo / zoom
+        checkBounds()
+    }
+
+    fun moveCameraBy(x: Float, y: Float) {
+        cameraX += x / viewportWidth
+        cameraY += y / viewportHeight
+        checkBounds()
+    }
+
+    private fun checkBounds() {
+        if (fov in (snapYTo - snapSensitivity)..(snapYTo + snapSensitivity)) fov = snapYTo
+        if (fov >= snapYTo) {
+            cameraY = 0f
+        } else {
+            val fovOpposite = cameraZ * tan((fov / 2) * PI.toFloat() / 180f)
+            if (cameraY + fovOpposite >= 1) cameraY = 1 - fovOpposite
+            if (cameraY - fovOpposite <= -1) cameraY = -1 + fovOpposite
+        }
+
+        cameraX = cameraX.coerceIn(-1f, 1f)
+    }
 
     fun addFilter(filter: Filter) = filters.add(filter)
     fun removeFilter(filter: Filter) = filters.remove(filter)
@@ -139,9 +178,12 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
             glViewport(0, 0, viewportWidth, viewportHeight)
             screenRenderer?.render(
                 it.getOutputTexture(),
-                 viewportWidth.toFloat() / viewportHeight.toFloat(),
+                viewportWidth.toFloat() / viewportHeight.toFloat(),
                 it.width.toFloat() / it.height.toFloat(),
-                zoom
+                fov,
+                cameraX,
+                cameraY,
+                cameraZ
             )
         }
 
@@ -152,6 +194,7 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
         this.viewportWidth = width
         this.viewportHeight = height
     }
+
     companion object {
         init {
             System.loadLibrary("shaded")
