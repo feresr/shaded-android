@@ -20,8 +20,8 @@ class ShadedView @JvmOverloads constructor(context: Context, attrs: AttributeSet
         renderMode = RENDERMODE_WHEN_DIRTY
     }
 
-    fun setBitmap(bitmap: Bitmap) {
-        renderer.setBitmap(bitmap)
+    fun setBitmap(bitmap: Bitmap, recycle : Boolean = false) {
+        renderer.setBitmap(bitmap, recycle)
         requestRender()
     }
 

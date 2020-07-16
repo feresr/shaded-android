@@ -79,13 +79,14 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
     fun addFilter(filter: Filter) = filters.add(filter)
     fun removeFilter(filter: Filter) = filters.remove(filter)
 
-    fun setBitmap(bitmap: Bitmap) {
+    fun setBitmap(bitmap: Bitmap, recycle: Boolean) {
         queue.add {
             originalTexture.setData(bitmap)
             previewPingPongRenderer?.initTextures(
                 bitmap.width / downScale,
                 bitmap.height / downScale
             )
+            if (recycle) bitmap.recycle()
         }
         render()
     }

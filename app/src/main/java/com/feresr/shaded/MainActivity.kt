@@ -44,7 +44,10 @@ class MainActivity : AppCompatActivity() {
 
         val options = BitmapFactory.Options()
         options.inScaled = false
-        surfaceview.setBitmap(BitmapFactory.decodeResource(resources, drawable.square, options))
+        surfaceview.setBitmap(
+            BitmapFactory.decodeResource(resources, drawable.square, options),
+            true
+        )
 
         val scaleGestureDetector =
             ScaleGestureDetector(this, object : ScaleGestureDetector.OnScaleGestureListener {
@@ -115,7 +118,8 @@ class MainActivity : AppCompatActivity() {
                     resources,
                     bitmaps[currentBitmap % bitmaps.size],
                     options
-                )
+                ),
+                true
             )
             currentBitmap++
         }
