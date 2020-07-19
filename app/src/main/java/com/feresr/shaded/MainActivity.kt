@@ -75,10 +75,7 @@ class MainActivity : AppCompatActivity() {
                     if (activePointerId != INVALID_POINTER_ID) {
                         if (event.pointerCount == 1) {
                             val (x: Float, y: Float) = event.x to event.y
-                            surfaceview.setMove(
-                                (lastTouchX - x),
-                                (y - lastTouchY)
-                            )
+                            surfaceview.setMove((lastTouchX - x), (y - lastTouchY))
                             lastTouchX = x
                             lastTouchY = y
                         }

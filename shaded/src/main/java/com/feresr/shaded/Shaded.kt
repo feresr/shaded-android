@@ -20,7 +20,6 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.math.PI
 import kotlin.math.atan
-import kotlin.math.tan
 
 class Shaded(private val context: Context) : GLSurfaceView.Renderer {
 
@@ -58,22 +57,19 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
     }
 
     fun moveCameraBy(x: Float, y: Float) {
-        cameraX += x / viewportWidth
-        cameraY += y / viewportHeight
+        cameraX += (x * QUAD_SIZE / viewportHeight) / zoom
+        cameraY += (y * QUAD_SIZE / viewportHeight) / zoom
         checkBounds()
     }
 
     private fun checkBounds() {
         if (fov in (snapYTo - SNAP_SENSITIVITY)..(snapYTo + SNAP_SENSITIVITY)) fov = snapYTo
-        if (fov >= snapYTo) {
-            cameraY = 0f
-        } else {
-            val fovOpposite = CAMERAZ * tan((fov / 2f) * PI.toFloat() / 180f)
-            if (cameraY + fovOpposite >= HALF_QUAD) cameraY = HALF_QUAD - fovOpposite
-            if (cameraY - fovOpposite <= -HALF_QUAD) cameraY = -HALF_QUAD + fovOpposite
-        }
 
         cameraX = cameraX.coerceIn(-HALF_QUAD, HALF_QUAD)
+        cameraY = cameraY.coerceIn(-HALF_QUAD, HALF_QUAD)
+
+        if (cameraX in (0 - .01f)..(0 + .01f)) cameraX = 0f
+        if (cameraY in (0 - .01f)..(0 + .01f)) cameraY = 0f
     }
 
     fun addFilter(filter: Filter) = filters.add(filter)
@@ -198,7 +194,8 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
         }
 
         const val CAMERAZ = 2f
-        const val HALF_QUAD = 1f
+        const val QUAD_SIZE = 2f
+        const val HALF_QUAD = QUAD_SIZE / 2
         const val SNAP_SENSITIVITY = 4f
     }
 }
