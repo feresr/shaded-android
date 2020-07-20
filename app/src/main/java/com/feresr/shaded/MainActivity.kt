@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
     val inverse = FilterInverse(this, sin(0f))
     val bright = FilterBrightness(this, sin(0f))
     val exposure = FilterExposure(this, sin(0f))
-    val temperature = FilterTemperature(this, 0f)
+    val temperature = FilterTemperature(this)
     val blur = FilterBlur(this, sin(0f), 0f)
     val vig = FilterVignette(this, FilterVignette.VignetteConfig())
 
@@ -154,7 +154,8 @@ class MainActivity : AppCompatActivity() {
                     start = sin(progress.toFloat() / 50f),
                     center = .5f to .5f
                 )
-                temperature.temperature = progress.toFloat() / 100f
+                //temperature.temperature = progress.toFloat() / 100f
+                temperature.tint = progress.toFloat() / 100f
                 surfaceview.refresh()
             }
 
