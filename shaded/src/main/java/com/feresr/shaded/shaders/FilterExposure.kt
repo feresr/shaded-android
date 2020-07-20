@@ -4,19 +4,19 @@ import android.content.Context
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 
-class FilterBrightness(
+class FilterExposure(
     context: Context,
-    @Volatile var brightness: Float = 0.5f
-) : Filter(context, R.raw.brightness) {
+    @Volatile var exposure: Float = 0.5f
+) : Filter(context, R.raw.exposure) {
 
     private var value = 0
     override fun bindUniforms() {
         super.bindUniforms()
-        value = shader.getUniformLocation("brightness")
+        value = shader.getUniformLocation("exposure")
     }
 
     override fun updateUniforms() {
         super.updateUniforms()
-        shader.setFloat(value, brightness)
+        shader.setFloat(value, exposure)
     }
 }

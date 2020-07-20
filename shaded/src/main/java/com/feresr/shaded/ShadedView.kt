@@ -32,6 +32,7 @@ class ShadedView @JvmOverloads constructor(context: Context, attrs: AttributeSet
 
     fun addFilter(filter: Filter) = renderer.addFilter(filter)
     fun removeFilter(filter: Filter) = renderer.removeFilter(filter)
+    fun clearFilters() = renderer.clearFilters()
 
     fun refresh() {
         renderer.render()

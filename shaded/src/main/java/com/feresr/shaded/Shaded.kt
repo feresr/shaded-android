@@ -188,6 +188,10 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
         this.viewportHeight = height
     }
 
+    fun clearFilters() {
+        filters.clear()
+    }
+
     companion object {
         init {
             System.loadLibrary("shaded")

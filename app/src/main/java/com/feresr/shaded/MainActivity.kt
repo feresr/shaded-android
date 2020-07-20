@@ -11,6 +11,7 @@ import com.feresr.shaded.R.drawable
 import com.feresr.shaded.shaders.FilterBlur
 import com.feresr.shaded.shaders.FilterBrightness
 import com.feresr.shaded.shaders.FilterContrast
+import com.feresr.shaded.shaders.FilterExposure
 import com.feresr.shaded.shaders.FilterHue
 import com.feresr.shaded.shaders.FilterInverse
 import com.feresr.shaded.shaders.FilterVignette
@@ -29,11 +30,12 @@ class MainActivity : AppCompatActivity() {
     val hue = FilterHue(this, sin(0f))
     val inverse = FilterInverse(this, sin(0f))
     val bright = FilterBrightness(this, sin(0f))
+    val exposure = FilterExposure(this, sin(0f))
     val blur = FilterBlur(this, sin(0f), 0f)
     val vig = FilterVignette(this, FilterVignette.VignetteConfig())
 
-    private val filters = arrayOf(contrast, hue, inverse, bright, blur, vig)
-    private val bitmaps = arrayOf(drawable.duck, drawable.tv, drawable.ducks, drawable.square)
+    private val filters = arrayOf(bright, exposure)
+    private val bitmaps = arrayOf(drawable.watch, drawable.tv, drawable.ducks, drawable.square)
     private var currentBitmap = 0
     private var filterIndex = 0
 
@@ -121,6 +123,7 @@ class MainActivity : AppCompatActivity() {
             currentBitmap++
         }
         setBitmapButton.setOnClickListener {
+            surfaceview.clearFilters()
             surfaceview.addFilter(filters[filterIndex % filters.size])
             filterIndex++
             surfaceview.refresh()
@@ -141,7 +144,8 @@ class MainActivity : AppCompatActivity() {
                 hue.value = sin(progress.toFloat() / 10f)
                 contrast.contrast = sin(progress.toFloat() / 20f)
                 inverse.alpha = cos(progress.toFloat() / 100f)
-                bright.brightness = sin(progress.toFloat() / 100f)
+                bright.brightness = progress.toFloat() / 100f
+                exposure.exposure = progress.toFloat() / 100f
                 blur.x = sin(progress.toFloat() / 1000f)
                 blur.y = sin(progress.toFloat() / 1000f)
                 vig.config = FilterVignette.VignetteConfig(
