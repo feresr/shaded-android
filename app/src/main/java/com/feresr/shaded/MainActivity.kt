@@ -14,6 +14,7 @@ import com.feresr.shaded.shaders.FilterContrast
 import com.feresr.shaded.shaders.FilterExposure
 import com.feresr.shaded.shaders.FilterHue
 import com.feresr.shaded.shaders.FilterInverse
+import com.feresr.shaded.shaders.FilterTemperature
 import com.feresr.shaded.shaders.FilterVignette
 import kotlinx.android.synthetic.main.activity_main.changeBitmap
 import kotlinx.android.synthetic.main.activity_main.clearBitmapButton
@@ -31,10 +32,11 @@ class MainActivity : AppCompatActivity() {
     val inverse = FilterInverse(this, sin(0f))
     val bright = FilterBrightness(this, sin(0f))
     val exposure = FilterExposure(this, sin(0f))
+    val temperature = FilterTemperature(this, 0f)
     val blur = FilterBlur(this, sin(0f), 0f)
     val vig = FilterVignette(this, FilterVignette.VignetteConfig())
 
-    private val filters = arrayOf(contrast, bright, exposure)
+    private val filters = arrayOf(temperature, contrast, bright, exposure)
     private val bitmaps = arrayOf(drawable.watch, drawable.tv, drawable.ducks, drawable.square)
     private var currentBitmap = 0
     private var filterIndex = 0
@@ -152,6 +154,7 @@ class MainActivity : AppCompatActivity() {
                     start = sin(progress.toFloat() / 50f),
                     center = .5f to .5f
                 )
+                temperature.temperature = progress.toFloat() / 100f
                 surfaceview.refresh()
             }
 
