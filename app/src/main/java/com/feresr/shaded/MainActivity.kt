@@ -15,6 +15,7 @@ import com.feresr.shaded.shaders.FilterExposure
 import com.feresr.shaded.shaders.FilterHighlightsShadows
 import com.feresr.shaded.shaders.FilterHue
 import com.feresr.shaded.shaders.FilterInverse
+import com.feresr.shaded.shaders.FilterSaturation
 import com.feresr.shaded.shaders.FilterTemperature
 import com.feresr.shaded.shaders.FilterVibrance
 import com.feresr.shaded.shaders.FilterVignette
@@ -37,10 +38,11 @@ class MainActivity : AppCompatActivity() {
     val temperature = FilterTemperature(this)
     val vib = FilterVibrance(this)
     val highShadows = FilterHighlightsShadows(this)
+    val saturation = FilterSaturation(this)
     val blur = FilterBlur(this, sin(0f), 0f)
     val vig = FilterVignette(this, FilterVignette.VignetteConfig())
 
-    private val filters = arrayOf(vib, temperature, contrast, bright, exposure)
+    private val filters = arrayOf(saturation, temperature, contrast, bright, exposure)
     private val bitmaps = arrayOf(drawable.watch, drawable.tv, drawable.ducks, drawable.square)
     private var currentBitmap = 0
     private var filterIndex = 0
@@ -160,7 +162,8 @@ class MainActivity : AppCompatActivity() {
                 //temperature.tint = progress.toFloat() / 100f
                 //highShadows.highlights = progress.toFloat() / 100f
                 //highShadows.shadows = progress.toFloat() / 100f
-                vib.vibrance = progress.toFloat() / 100f
+                //vib.vibrance = progress.toFloat() / 100f
+                saturation.saturation = progress.toFloat() / 100f
                 surfaceview.refresh()
             }
 
