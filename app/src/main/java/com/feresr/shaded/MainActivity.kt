@@ -12,6 +12,7 @@ import com.feresr.shaded.shaders.FilterBlur
 import com.feresr.shaded.shaders.FilterBrightness
 import com.feresr.shaded.shaders.FilterContrast
 import com.feresr.shaded.shaders.FilterExposure
+import com.feresr.shaded.shaders.FilterHighlightsShadows
 import com.feresr.shaded.shaders.FilterHue
 import com.feresr.shaded.shaders.FilterInverse
 import com.feresr.shaded.shaders.FilterTemperature
@@ -33,10 +34,11 @@ class MainActivity : AppCompatActivity() {
     val bright = FilterBrightness(this, sin(0f))
     val exposure = FilterExposure(this, sin(0f))
     val temperature = FilterTemperature(this)
+    val highShadows = FilterHighlightsShadows(this)
     val blur = FilterBlur(this, sin(0f), 0f)
     val vig = FilterVignette(this, FilterVignette.VignetteConfig())
 
-    private val filters = arrayOf(temperature, contrast, bright, exposure)
+    private val filters = arrayOf(highShadows, temperature, contrast, bright, exposure)
     private val bitmaps = arrayOf(drawable.watch, drawable.tv, drawable.ducks, drawable.square)
     private var currentBitmap = 0
     private var filterIndex = 0
@@ -106,11 +108,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         clearBitmapButton.setOnClickListener {
-            if (filterIndex > 0) {
-                filterIndex--
-                surfaceview.removeFilter(filters[(filterIndex % filters.size)])
-                surfaceview.refresh()
-            }
+            filterIndex = 0;
+            surfaceview.clearFilters()
+            surfaceview.refresh()
         }
 
         changeBitmap.setOnClickListener {
@@ -155,7 +155,9 @@ class MainActivity : AppCompatActivity() {
                     center = .5f to .5f
                 )
                 //temperature.temperature = progress.toFloat() / 100f
-                temperature.tint = progress.toFloat() / 100f
+                //temperature.tint = progress.toFloat() / 100f
+                highShadows.highlights = progress.toFloat() / 100f
+                //highShadows.shadows = progress.toFloat() / 100f
                 surfaceview.refresh()
             }
 
