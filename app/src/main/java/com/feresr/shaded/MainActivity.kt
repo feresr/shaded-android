@@ -26,7 +26,7 @@ import kotlin.math.sin
 
 class MainActivity : AppCompatActivity() {
 
-    val contrast = FilterContrast(this, cos(0f))
+    val contrast = FilterContrast(this)
     val hue = FilterHue(this, sin(0f))
     val inverse = FilterInverse(this, sin(0f))
     val bright = FilterBrightness(this, sin(0f))
@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
     val blur = FilterBlur(this, sin(0f), 0f)
     val vig = FilterVignette(this, FilterVignette.VignetteConfig())
 
-    private val filters = arrayOf(bright, exposure)
+    private val filters = arrayOf(contrast, bright, exposure)
     private val bitmaps = arrayOf(drawable.watch, drawable.tv, drawable.ducks, drawable.square)
     private var currentBitmap = 0
     private var filterIndex = 0
@@ -142,7 +142,7 @@ class MainActivity : AppCompatActivity() {
         seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 hue.value = sin(progress.toFloat() / 10f)
-                contrast.contrast = sin(progress.toFloat() / 20f)
+                contrast.contrast = progress.toFloat() / 100f
                 inverse.alpha = cos(progress.toFloat() / 100f)
                 bright.brightness = progress.toFloat() / 100f
                 exposure.exposure = progress.toFloat() / 100f
