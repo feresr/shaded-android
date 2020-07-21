@@ -17,7 +17,7 @@ void main() {
     lowp vec4 source = texture(tex_sampler, v_texcoord);
 
     mediump vec3 yiq = RGBtoYIQ * source.rgb;//adjusting tint
-    yiq.b = clamp(yiq.b + (-2.0 + tint * 4.0)*0.5226*0.1, -0.5226, 0.5226);
+    yiq.b = clamp(yiq.b + (-1.0 + tint * 2.0)*0.5226*0.1, -0.5226, 0.5226);
     lowp vec3 rgb = YIQtoRGB * yiq;
 
     lowp vec3 processed = vec3(
@@ -26,5 +26,5 @@ void main() {
     (rgb.b < 0.5 ? (2.0 * rgb.b * warmFilter.b) : (1.0 - 2.0 * (1.0 - rgb.b) * (1.0 - warmFilter.b)))
     );
 
-    FragColor = vec4(mix(rgb, processed, -1.0 + temperature * 2.0), source.a);
+    FragColor = vec4(mix(rgb, processed, -.5 + temperature * 1.0), source.a);
 }
