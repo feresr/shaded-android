@@ -49,6 +49,8 @@ class MainActivity : AppCompatActivity() {
     private var currentBitmap = 0
     private var filterIndex = 0
 
+    private val shaded = Shaded(this)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -56,7 +58,8 @@ class MainActivity : AppCompatActivity() {
 
         val options = BitmapFactory.Options()
         options.inScaled = false
-        surfaceview.setBitmap(
+        surfaceview.setRenderer(shaded)
+        shaded.setBitmap(
             BitmapFactory.decodeResource(resources, drawable.square, options),
             true
         )
@@ -66,7 +69,7 @@ class MainActivity : AppCompatActivity() {
                 override fun onScaleBegin(detector: ScaleGestureDetector?): Boolean = true
                 override fun onScaleEnd(detector: ScaleGestureDetector?) {}
                 override fun onScale(detector: ScaleGestureDetector): Boolean {
-                    surfaceview.setZoom(detector.scaleFactor)
+                    shaded.changeZoomBy(detector.scaleFactor)
                     return true
                 }
             })
@@ -87,7 +90,7 @@ class MainActivity : AppCompatActivity() {
                     if (activePointerId != INVALID_POINTER_ID) {
                         if (event.pointerCount == 1) {
                             val (x: Float, y: Float) = event.x to event.y
-                            surfaceview.setMove((lastTouchX - x), (y - lastTouchY))
+                            shaded.moveCameraBy((lastTouchX - x), (y - lastTouchY))
                             lastTouchX = x
                             lastTouchY = y
                         }
@@ -99,15 +102,14 @@ class MainActivity : AppCompatActivity() {
                     v.performClick()
                 }
                 MotionEvent.ACTION_POINTER_UP -> {
-
-                    event.getPointerId(event.actionIndex).takeIf {
-                        it == activePointerId
-                    }?.run {
-                        val newPointerIndex = if (event.actionIndex == 0) 1 else 0
-                        lastTouchX = event.getX(newPointerIndex)
-                        lastTouchY = event.getY(newPointerIndex)
-                        activePointerId = event.getPointerId(newPointerIndex)
-                    }
+                    event.getPointerId(event.actionIndex)
+                        .takeIf { it == activePointerId }
+                        ?.run {
+                            val newPointerIndex = if (event.actionIndex == 0) 1 else 0
+                            lastTouchX = event.getX(newPointerIndex)
+                            lastTouchY = event.getY(newPointerIndex)
+                            activePointerId = event.getPointerId(newPointerIndex)
+                        }
                 }
             }
             return@setOnTouchListener true
@@ -115,12 +117,13 @@ class MainActivity : AppCompatActivity() {
 
         clearBitmapButton.setOnClickListener {
             filterIndex = 0;
-            surfaceview.clearFilters()
-            surfaceview.refresh()
+            shaded.clearFilters()
+            shaded.render()
+            surfaceview.requestRender()
         }
 
         changeBitmap.setOnClickListener {
-            surfaceview.setBitmap(
+            shaded.setBitmap(
                 BitmapFactory.decodeResource(
                     resources,
                     bitmaps[currentBitmap % bitmaps.size],
@@ -128,13 +131,15 @@ class MainActivity : AppCompatActivity() {
                 ),
                 true
             )
+            surfaceview.requestRender()
             currentBitmap++
         }
         setBitmapButton.setOnClickListener {
-            surfaceview.clearFilters()
-            surfaceview.addFilter(filters[filterIndex % filters.size])
+            shaded.clearFilters()
+            shaded.addFilter(filters[filterIndex % filters.size])
             filterIndex++
-            surfaceview.refresh()
+            shaded.render()
+            surfaceview.requestRender()
         }
     }
 
@@ -168,17 +173,18 @@ class MainActivity : AppCompatActivity() {
                 //vib.vibrance = progress.toFloat() / 100f
                 //saturation.saturation = progress.toFloat() / 100f
                 //grain.grain = progress.toFloat() / 100f
-                surfaceview.refresh()
+                shaded.render()
+                surfaceview.requestRender()
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
                 // Optional: downscale (better performance on large bitmaps)
-                surfaceview.scale(2)
+                shaded.downScale(2)
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                surfaceview.scale(1)
-                surfaceview.getBitmap { result.setImageBitmap(it) }
+                shaded.downScale(1)
+                shaded.getBitmap { result.setImageBitmap(it) }
             }
         })
     }
