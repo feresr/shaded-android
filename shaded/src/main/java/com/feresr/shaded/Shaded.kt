@@ -87,15 +87,14 @@ class Shaded(private val context: Context) : GLSurfaceView.Renderer {
         render()
     }
 
-    fun getBitmap(callback: (Bitmap?) -> Unit) {
+    fun getBitmap(callback: (Bitmap?) -> Unit, withFilters: List<Filter> = filters) {
         queue.add {
             //rescale the image up
             if (downScale != 1) previewPingPongRenderer?.initTextures(
                 originalTexture.width(),
                 originalTexture.height()
             )
-            val bitmap =
-                if (filters.size > 0) previewPingPongRenderer?.renderToBitmap(filters) else null
+            val bitmap = if (filters.size > 0) previewPingPongRenderer?.renderToBitmap(withFilters) else null
             handler.post { callback(bitmap) }
         }
     }

@@ -20,13 +20,17 @@ class ShadedView @JvmOverloads constructor(context: Context, attrs: AttributeSet
         renderMode = RENDERMODE_WHEN_DIRTY
     }
 
-    fun setBitmap(bitmap: Bitmap, recycle : Boolean = false) {
+    fun setBitmap(bitmap: Bitmap, recycle: Boolean = false) {
         renderer.setBitmap(bitmap, recycle)
         requestRender()
     }
 
-    fun getBitmap(callback: (Bitmap?) -> Unit) {
-        renderer.getBitmap(callback)
+    fun getBitmap(withFilters: List<Filter> = emptyList(), callback: (Bitmap?) -> Unit) {
+        if (withFilters.isNotEmpty()) {
+            renderer.getBitmap(callback, withFilters)
+        } else {
+            renderer.getBitmap(callback)
+        }
         requestRender()
     }
 
@@ -49,12 +53,12 @@ class ShadedView @JvmOverloads constructor(context: Context, attrs: AttributeSet
         super.onDetachedFromWindow()
     }
 
-    fun setZoom(z : Float) {
+    fun setZoom(z: Float) {
         renderer.changeZoomBy(z)
         requestRender()
     }
 
-    fun setMove(x : Float, y : Float) {
+    fun setMove(x: Float, y: Float) {
         renderer.moveCameraBy(x, y)
         requestRender()
     }

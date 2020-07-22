@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
     val blur = FilterBlur(this, sin(0f), 0f)
     val vig = FilterVignette(this, FilterVignette.VignetteConfig())
 
-    private val filters = arrayOf(temperature, temperature, contrast, bright, exposure)
+    private val filters = arrayOf(exposure, exposure, contrast, bright, exposure)
     private val bitmaps = arrayOf(drawable.watch, drawable.tv, drawable.ducks, drawable.square)
     private var currentBitmap = 0
     private var filterIndex = 0
@@ -161,7 +161,7 @@ class MainActivity : AppCompatActivity() {
                     center = .5f to .5f
                 )
                 //temperature.temperature = progress.toFloat() / 100f
-                temperature.tint =  progress.toFloat() / 100f
+                temperature.tint = progress.toFloat() / 100f
                 //temperature.tint = progress.toFloat() / 100f
                 //highShadows.highlights = progress.toFloat() / 100f
                 //highShadows.shadows = progress.toFloat() / 100f
