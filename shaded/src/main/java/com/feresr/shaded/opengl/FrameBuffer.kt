@@ -14,6 +14,8 @@ internal class FrameBuffer(private val isScreenBuffer: Boolean = false) {
     private val id: Int = if (isScreenBuffer) 0 else initFrameBuffer()
     private var colorAttachment: Texture? = null
 
+    private var bitmap: Bitmap? = null
+
     fun bind() = glBindFramebuffer(GL_FRAMEBUFFER, id)
     fun unbind() = glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
@@ -29,6 +31,7 @@ internal class FrameBuffer(private val isScreenBuffer: Boolean = false) {
         )
         if (!isComplete()) throw IllegalStateException("Could not attach color texture for framebuffer $id")
         this.colorAttachment = texture
+        bitmap = Bitmap.createBitmap(texture.width(), texture.height(), Bitmap.Config.ARGB_8888)
     }
 
     fun isComplete(): Boolean {
@@ -37,14 +40,11 @@ internal class FrameBuffer(private val isScreenBuffer: Boolean = false) {
     }
 
     fun getBitmap(): Bitmap {
-        val color = colorAttachment
-            ?: throw IllegalStateException("Could get bitmap, framebuffer $id has no color attachment")
-        val bitmap = Bitmap.createBitmap(color.width(), color.height(), Bitmap.Config.ARGB_8888)
         bind()
-        val success = getBitmap(bitmap)
+        val success = getBitmap(bitmap!!)
         if (!success) throw IllegalStateException("Could not retrieve bitmap from framebuffer $id")
         unbind()
-        return bitmap
+        return bitmap!!
     }
 
     fun delete() {

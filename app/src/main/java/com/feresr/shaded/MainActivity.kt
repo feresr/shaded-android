@@ -7,6 +7,7 @@ import android.view.MotionEvent.INVALID_POINTER_ID
 import android.view.ScaleGestureDetector
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.feresr.shaded.R.drawable
 import com.feresr.shaded.shaders.FilterBlur
 import com.feresr.shaded.shaders.FilterBrightness
@@ -20,12 +21,12 @@ import com.feresr.shaded.shaders.FilterSaturation
 import com.feresr.shaded.shaders.FilterTemperature
 import com.feresr.shaded.shaders.FilterVibrance
 import com.feresr.shaded.shaders.FilterVignette
+import kotlinx.android.synthetic.main.activity_main.addFilter
 import kotlinx.android.synthetic.main.activity_main.changeBitmap
-import kotlinx.android.synthetic.main.activity_main.clearBitmapButton
-import kotlinx.android.synthetic.main.activity_main.result
+import kotlinx.android.synthetic.main.activity_main.image
+import kotlinx.android.synthetic.main.activity_main.removeFilter
 import kotlinx.android.synthetic.main.activity_main.seekbar
-import kotlinx.android.synthetic.main.activity_main.setBitmapButton
-import kotlinx.android.synthetic.main.activity_main.surfaceview
+import kotlinx.coroutines.launch
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -44,7 +45,7 @@ class MainActivity : AppCompatActivity() {
     val blur = FilterBlur(this, sin(0f), 0f)
     val vig = FilterVignette(this, FilterVignette.VignetteConfig())
 
-    private val filters = arrayOf(exposure, exposure, contrast, bright, exposure)
+    private val filters = arrayOf(exposure, blur, grain, vib, highShadows, saturation, bright, vig)
     private val bitmaps = arrayOf(drawable.watch, drawable.tv, drawable.ducks, drawable.square)
     private var currentBitmap = 0
     private var filterIndex = 0
@@ -53,16 +54,20 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_main)
 
         val options = BitmapFactory.Options()
         options.inScaled = false
-        surfaceview.setRenderer(shaded)
-        shaded.setBitmap(
-            BitmapFactory.decodeResource(resources, drawable.square, options),
-            true
-        )
+
+        lifecycleScope.launch {
+            shaded.setBitmap(
+                BitmapFactory.decodeResource(resources, drawable.square, options),
+                true
+            )
+
+            image.setImageBitmap(shaded.getBitmap())
+        }
+
 
         val scaleGestureDetector =
             ScaleGestureDetector(this, object : ScaleGestureDetector.OnScaleGestureListener {
@@ -78,7 +83,7 @@ class MainActivity : AppCompatActivity() {
         var lastTouchY = 0f
         var activePointerId = 0
 
-        surfaceview.setOnTouchListener { v, event ->
+        image.setOnTouchListener { v, event ->
             if (event.pointerCount >= 2) scaleGestureDetector.onTouchEvent(event)
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -115,43 +120,48 @@ class MainActivity : AppCompatActivity() {
             return@setOnTouchListener true
         }
 
-        clearBitmapButton.setOnClickListener {
-            filterIndex = 0;
+        removeFilter.setOnClickListener {
+            filterIndex = 0
             shaded.clearFilters()
-            shaded.render()
-            surfaceview.requestRender()
+
+            lifecycleScope.launch {
+                image.setImageBitmap(shaded.getBitmap())
+            }
         }
 
         changeBitmap.setOnClickListener {
-            shaded.setBitmap(
-                BitmapFactory.decodeResource(
-                    resources,
-                    bitmaps[currentBitmap % bitmaps.size],
-                    options
-                ),
-                true
-            )
-            surfaceview.requestRender()
-            currentBitmap++
+            lifecycleScope.launch {
+
+                shaded.setBitmap(
+                    BitmapFactory.decodeResource(
+                        resources,
+                        bitmaps[currentBitmap % bitmaps.size],
+                        options
+                    ),
+                    true
+                )
+                currentBitmap++
+                image.setImageBitmap(shaded.getBitmap())
+            }
+
         }
-        setBitmapButton.setOnClickListener {
-            shaded.clearFilters()
-            shaded.addFilter(filters[filterIndex % filters.size])
-            filterIndex++
-            shaded.render()
-            surfaceview.requestRender()
+        addFilter.setOnClickListener {
+            //shaded.clearFilters()
+            lifecycleScope.launch {
+                shaded.addFilter(filters[filterIndex % filters.size])
+                filterIndex++
+                image.setImageBitmap(shaded.getBitmap())
+            }
         }
     }
 
     override fun onStop() {
         seekbar.setOnSeekBarChangeListener(null)
-        surfaceview.onPause()
         super.onStop()
     }
 
     override fun onStart() {
         super.onStart()
-        surfaceview.onResume()
         seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 hue.value = sin(progress.toFloat() / 10f)
@@ -165,28 +175,43 @@ class MainActivity : AppCompatActivity() {
                     start = sin(progress.toFloat() / 50f),
                     center = .5f to .5f
                 )
-                //temperature.temperature = progress.toFloat() / 100f
+                temperature.temperature = progress.toFloat() / 100f
                 temperature.tint = progress.toFloat() / 100f
-                //temperature.tint = progress.toFloat() / 100f
-                //highShadows.highlights = progress.toFloat() / 100f
-                //highShadows.shadows = progress.toFloat() / 100f
-                //vib.vibrance = progress.toFloat() / 100f
-                //saturation.saturation = progress.toFloat() / 100f
-                //grain.grain = progress.toFloat() / 100f
-                shaded.render()
-                surfaceview.requestRender()
+                temperature.tint = progress.toFloat() / 100f
+                highShadows.highlights = progress.toFloat() / 100f
+                highShadows.shadows = progress.toFloat() / 100f
+                vib.vibrance = progress.toFloat() / 100f
+                saturation.saturation = progress.toFloat() / 100f
+                grain.grain = progress.toFloat() / 100f
+
+                lifecycleScope.launch {
+                    image.setImageBitmap(shaded.getBitmap())
+                }
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
                 // Optional: downscale (better performance on large bitmaps)
-                shaded.downScale(2)
+                lifecycleScope.launch {
+                    shaded.downScale(4)
+                }
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                shaded.downScale(1)
-                shaded.getBitmap { result.setImageBitmap(it) }
+                lifecycleScope.launch {
+                    shaded.downScale(1)
+                }
+                lifecycleScope.launch {
+
+                    image.setImageBitmap(shaded.getBitmap())
+
+                }
             }
         })
     }
 
+
+    override fun onDestroy() {
+        shaded.dispose()
+        super.onDestroy()
+    }
 }

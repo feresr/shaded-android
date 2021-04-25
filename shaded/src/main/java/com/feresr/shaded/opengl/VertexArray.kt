@@ -10,7 +10,6 @@ internal class VertexArray {
     fun delete() = deleteVertexArray(id)
 
     fun pointer(index: Int, size: Int, stride: Int, offset: Int) {
-        bind()
         setupPointer(index, size, stride, offset)
     }
 

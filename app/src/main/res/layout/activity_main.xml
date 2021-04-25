@@ -4,8 +4,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.feresr.shaded.ShadedView
-        android:id="@+id/surfaceview"
+    <ImageView
+        android:id="@+id/image"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
@@ -24,14 +24,14 @@
 
 
     <Button
-        android:id="@+id/clearBitmapButton"
+        android:id="@+id/removeFilter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
         android:text="Remove filter" />
 
     <Button
-        android:id="@+id/setBitmapButton"
+        android:id="@+id/addFilter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"

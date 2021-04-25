@@ -6,6 +6,7 @@ import com.feresr.shaded.opengl.FrameBuffer
 import com.feresr.shaded.opengl.Texture
 import com.feresr.shaded.shaders.ScreenFilter
 
+@Deprecated("Rendering directly to the screen is no longer supported")
 internal class ScreenRenderer(context: Context) {
 
     private val screenFrameBuffer = FrameBuffer(true)

@@ -7,7 +7,6 @@ internal class VertexBuffer {
     fun unbind() = bind(0)
 
     fun uploadData(data: FloatArray) {
-        bind()
         setData(data)
     }
 

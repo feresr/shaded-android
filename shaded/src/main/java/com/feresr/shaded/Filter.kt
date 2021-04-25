@@ -6,7 +6,7 @@ import android.opengl.GLES30.glDrawArrays
 import androidx.annotation.RawRes
 import com.feresr.shaded.opengl.Shader
 
-abstract class Filter(
+open class Filter(
     val context: Context,
     @RawRes val fshader: Int = R.raw.fragment,
     @RawRes val vshader: Int = R.raw.vertex

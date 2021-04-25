@@ -77,4 +77,3 @@ Java_com_feresr_shaded_opengl_Texture_storeBitmap(JNIEnv *jenv, jobject thiz, jo
 
     return true;
 }
-
