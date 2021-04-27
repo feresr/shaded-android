@@ -16,12 +16,20 @@ internal class PingPongRenderer(
     private val originalTexture: Texture
 ) {
 
+    private var bitmap: Bitmap = Bitmap.createBitmap(
+        originalTexture.width(),
+        originalTexture.height(),
+        Bitmap.Config.ARGB_8888
+    )
+
     private val textures = Array(2) { Texture() }
     private val frameBuffers = Array(2) { FrameBuffer() }
     private var width = 0
     private var height = 0
 
     fun resize(width: Int, height: Int) {
+        bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
         textures[0].resize(width, height)
         textures[1].resize(width, height)
 
@@ -53,7 +61,7 @@ internal class PingPongRenderer(
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        return latestFBO.getBitmap()
+        return latestFBO.copyToBitmap(bitmap)
     }
 
     fun delete() {
