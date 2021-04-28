@@ -74,10 +74,14 @@ class Shaded(private val context: Context) {
     }
 
     fun dispose() {
-        filters.forEach { it.delete() }
-        previewPingPongRenderer.delete()
-        originalTexture.delete()
-        com.feresr.shaded.opengl.Context.tearDown()
+        runBlocking {
+            withContext(dispatcher) {
+                filters.forEach { it.delete() }
+                previewPingPongRenderer.delete()
+                originalTexture.delete()
+                com.feresr.shaded.opengl.Context.tearDown()
+            }
+        }
     }
 
     /**
