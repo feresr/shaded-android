@@ -16,15 +16,11 @@ class Shaded(private val context: Context) {
 
     private val dispatcher = newSingleThreadContext("OpenGLDispatcher")
 
-    init {
-        runBlocking {
-            withContext(dispatcher) {
-                com.feresr.shaded.opengl.Context.init()
-                glDisable(GL_BLEND)
-                glDisable(GL_DEPTH_TEST)
-                Layer().bind()
-            }
-        }
+    suspend fun init() = withContext(dispatcher) {
+        com.feresr.shaded.opengl.Context.init()
+        glDisable(GL_BLEND)
+        glDisable(GL_DEPTH_TEST)
+        Layer().bind()
     }
 
     private val previewPingPongRenderer: PingPongRenderer by lazy {

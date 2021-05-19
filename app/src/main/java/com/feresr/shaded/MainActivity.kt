@@ -60,6 +60,7 @@ class MainActivity : AppCompatActivity() {
         options.inScaled = false
 
         lifecycleScope.launch {
+            shaded.init()
             shaded.setBitmap(
                 BitmapFactory.decodeResource(resources, drawable.square, options),
                 true
