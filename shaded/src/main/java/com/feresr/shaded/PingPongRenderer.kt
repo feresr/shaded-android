@@ -58,10 +58,14 @@ internal class PingPongRenderer(private val defaultFilter: Filter) {
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-        var bitmap = bitmap ?: Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        bitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
-
-        return latestFBO.copyToBitmap(bitmap)
+        val scaled = Bitmap.createScaledBitmap(
+            bitmap ?: Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888),
+            width,
+            height,
+            true
+        )
+        bitmap = scaled
+        return latestFBO.copyToBitmap(scaled)
     }
 
     fun delete() {
