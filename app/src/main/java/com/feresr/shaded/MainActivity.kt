@@ -26,6 +26,7 @@ import kotlinx.android.synthetic.main.activity_main.changeBitmap
 import kotlinx.android.synthetic.main.activity_main.image
 import kotlinx.android.synthetic.main.activity_main.removeFilter
 import kotlinx.android.synthetic.main.activity_main.seekbar
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlin.math.cos
 import kotlin.math.sin
@@ -60,7 +61,6 @@ class MainActivity : AppCompatActivity() {
         options.inScaled = false
 
         lifecycleScope.launch {
-            shaded.init()
             shaded.setBitmap(
                 BitmapFactory.decodeResource(resources, drawable.square, options),
                 true
@@ -123,9 +123,9 @@ class MainActivity : AppCompatActivity() {
 
         removeFilter.setOnClickListener {
             filterIndex = 0
-            shaded.clearFilters()
 
             lifecycleScope.launch {
+                shaded.clearFilters()
                 image.setImageBitmap(shaded.getBitmap())
             }
         }
@@ -200,11 +200,7 @@ class MainActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 lifecycleScope.launch {
                     shaded.downScale(1)
-                }
-                lifecycleScope.launch {
-
                     image.setImageBitmap(shaded.getBitmap())
-
                 }
             }
         })

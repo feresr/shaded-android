@@ -5,22 +5,33 @@ import android.graphics.Bitmap
 import android.opengl.GLES20.GL_BLEND
 import android.opengl.GLES20.GL_DEPTH_TEST
 import android.opengl.GLES20.glDisable
+import android.util.Log
 import com.feresr.shaded.opengl.Texture
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
 import kotlin.math.PI
 import kotlin.math.atan
 
-class Shaded(private val context: Context) {
+class Shaded(private val context: Context) : CoroutineScope {
 
-    private val dispatcher = newSingleThreadContext("OpenGLDispatcher")
+    override val coroutineContext: CoroutineContext =
+        newSingleThreadContext("OpenGLDispatcher") + CoroutineExceptionHandler { _, e ->
+            Log.e(Shaded::class::simpleName.toString(), e.toString())
+        } + SupervisorJob()
 
-    suspend fun init() = withContext(dispatcher) {
-        com.feresr.shaded.opengl.Context.init()
-        glDisable(GL_BLEND)
-        glDisable(GL_DEPTH_TEST)
-        Layer().bind()
+    init {
+        launch {
+            com.feresr.shaded.opengl.Context.init()
+            glDisable(GL_BLEND)
+            glDisable(GL_DEPTH_TEST)
+            Layer().bind()
+        }
     }
 
     private val previewPingPongRenderer: PingPongRenderer by lazy {
@@ -42,41 +53,37 @@ class Shaded(private val context: Context) {
     private var fov = snapYTo
 
 
-    suspend fun addFilter(filter: Filter) {
-        // avoids ConcurrentModificationException
-        withContext(dispatcher) { filters.add(filter) }
+    suspend fun addFilter(filter: Filter) = withContext(coroutineContext) {
+        filters.add(filter)
     }
 
-    suspend fun removeFilter(filter: Filter) {
-        // avoids ConcurrentModificationException
-        withContext(dispatcher) { filters.remove(filter) }
+    suspend fun removeFilter(filter: Filter) = withContext(coroutineContext) {
+        filters.remove(filter)
     }
 
-    suspend fun setBitmap(bitmap: Bitmap, recycle: Boolean) {
-        withContext(dispatcher) {
-            originalTexture.setData(bitmap)
-            previewPingPongRenderer.resize(
-                bitmap.width / downScale,
-                bitmap.height / downScale
-            )
-            if (recycle) bitmap.recycle()
-        }
+    suspend fun setBitmap(bitmap: Bitmap, recycle: Boolean) = withContext(coroutineContext) {
+        originalTexture.setData(bitmap)
+        previewPingPongRenderer.resize(
+            bitmap.width / downScale,
+            bitmap.height / downScale
+        )
+        if (recycle) bitmap.recycle()
     }
 
     suspend fun getBitmap(withFilters: List<Filter> = filters): Bitmap {
-        return withContext(dispatcher) {
+        return withContext(coroutineContext) {
             previewPingPongRenderer.renderToBitmap(withFilters)
         }
     }
 
     fun dispose() {
-        runBlocking {
-            withContext(dispatcher) {
-                filters.forEach { it.delete() }
-                previewPingPongRenderer.delete()
-                originalTexture.delete()
-                com.feresr.shaded.opengl.Context.tearDown()
-            }
+        // launch independently of the parent scope and finish
+        launch {
+            filters.forEach { it.delete() }
+            previewPingPongRenderer.delete()
+            originalTexture.delete()
+            com.feresr.shaded.opengl.Context.tearDown()
+            this@Shaded.cancel()
         }
     }
 
@@ -84,7 +91,7 @@ class Shaded(private val context: Context) {
      * Downscaling allows for faster rendering
      */
     suspend fun downScale(factor: Int) {
-        return withContext(dispatcher) {
+        withContext(coroutineContext) {
             if (downScale == factor) return@withContext
             downScale = factor
             previewPingPongRenderer.resize(
@@ -92,10 +99,9 @@ class Shaded(private val context: Context) {
                 originalTexture.height() / factor
             )
         }
-
     }
 
-    fun clearFilters() {
+    suspend fun clearFilters() = withContext(coroutineContext) {
         filters.clear()
     }
 
@@ -132,5 +138,4 @@ class Shaded(private val context: Context) {
         const val HALF_QUAD = QUAD_SIZE / 2
         const val SNAP_SENSITIVITY = 4f
     }
-
 }
