@@ -11,24 +11,20 @@ import com.feresr.shaded.opengl.Texture
  * This class implements ping-pong rendering between textures for size [width] and [height] starting
  * off from originalTexture (which can be of any size)
  */
-internal class PingPongRenderer(
-    private val defaultFilter: Filter,
-    private val originalTexture: Texture
-) {
+internal class PingPongRenderer(private val defaultFilter: Filter) {
 
-    private var bitmap: Bitmap = Bitmap.createBitmap(
-        originalTexture.width(),
-        originalTexture.height(),
-        Bitmap.Config.ARGB_8888
-    )
+    private val originalTexture: Texture = Texture()
+    private var bitmap: Bitmap? = null
 
     private val textures = Array(2) { Texture() }
     private val frameBuffers = Array(2) { FrameBuffer() }
     private var width = 0
     private var height = 0
 
-    fun resize(width: Int, height: Int) {
-        bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    fun resize(factor: Int) {
+
+        val width = originalTexture.width() / factor
+        val height = originalTexture.height() / factor
 
         textures[0].resize(width, height)
         textures[1].resize(width, height)
@@ -61,11 +57,20 @@ internal class PingPongRenderer(
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+        var bitmap = bitmap ?: Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        bitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
+
         return latestFBO.copyToBitmap(bitmap)
     }
 
     fun delete() {
         frameBuffers.forEach { it.delete() }
         textures.forEach { it.delete() }
+        originalTexture.delete()
+    }
+
+    fun setData(bitmap: Bitmap) {
+        originalTexture.setData(bitmap)
     }
 }

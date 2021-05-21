@@ -6,7 +6,6 @@ import android.opengl.GLES20.GL_BLEND
 import android.opengl.GLES20.GL_DEPTH_TEST
 import android.opengl.GLES20.glDisable
 import android.util.Log
-import com.feresr.shaded.opengl.Texture
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -18,12 +17,14 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.math.PI
 import kotlin.math.atan
 
-class Shaded(private val context: Context) : CoroutineScope {
+class Shaded(context: Context) : CoroutineScope {
 
     override val coroutineContext: CoroutineContext =
         newSingleThreadContext("OpenGLDispatcher") + CoroutineExceptionHandler { _, e ->
-            Log.e(Shaded::class::simpleName.toString(), e.toString())
+            Log.e(Shaded::class.java.simpleName, e.toString())
         } + SupervisorJob()
+
+    private lateinit var previewPingPongRenderer: PingPongRenderer
 
     init {
         launch {
@@ -31,17 +32,10 @@ class Shaded(private val context: Context) : CoroutineScope {
             glDisable(GL_BLEND)
             glDisable(GL_DEPTH_TEST)
             Layer().bind()
+            previewPingPongRenderer = PingPongRenderer(Filter(context))
         }
     }
 
-    private val previewPingPongRenderer: PingPongRenderer by lazy {
-        PingPongRenderer(
-            Filter(context),
-            originalTexture
-        )
-    }
-
-    private val originalTexture: Texture by lazy { Texture() }
     private val filters = mutableListOf<Filter>()
 
     private var cameraX = 0.0f
@@ -62,11 +56,8 @@ class Shaded(private val context: Context) : CoroutineScope {
     }
 
     suspend fun setBitmap(bitmap: Bitmap, recycle: Boolean) = withContext(coroutineContext) {
-        originalTexture.setData(bitmap)
-        previewPingPongRenderer.resize(
-            bitmap.width / downScale,
-            bitmap.height / downScale
-        )
+        previewPingPongRenderer.setData(bitmap)
+        previewPingPongRenderer.resize(downScale)
         if (recycle) bitmap.recycle()
     }
 
@@ -81,7 +72,6 @@ class Shaded(private val context: Context) : CoroutineScope {
         launch {
             filters.forEach { it.delete() }
             previewPingPongRenderer.delete()
-            originalTexture.delete()
             com.feresr.shaded.opengl.Context.tearDown()
             this@Shaded.cancel()
         }
@@ -94,10 +84,7 @@ class Shaded(private val context: Context) : CoroutineScope {
         withContext(coroutineContext) {
             if (downScale == factor) return@withContext
             downScale = factor
-            previewPingPongRenderer.resize(
-                originalTexture.width() / factor,
-                originalTexture.height() / factor
-            )
+            previewPingPongRenderer.resize(factor)
         }
     }
 
