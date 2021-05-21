@@ -1,6 +1,7 @@
 package com.feresr.shaded
 
 import android.graphics.Bitmap
+import android.graphics.Bitmap.Config.ARGB_8888
 import android.opengl.GLES10.glViewport
 import android.opengl.GLES30.GL_FRAMEBUFFER
 import android.opengl.GLES30.glBindFramebuffer
@@ -58,10 +59,11 @@ internal class PingPongRenderer(private val defaultFilter: Filter) {
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-        var bitmap = bitmap ?: Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        bitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
-
-        return latestFBO.copyToBitmap(bitmap)
+        bitmap = bitmap ?: Bitmap.createBitmap(width, height, ARGB_8888)
+        if (bitmap?.width != width || bitmap?.height != height) {
+            bitmap = Bitmap.createScaledBitmap(bitmap!!, width, height, true)
+        }
+        return latestFBO.copyToBitmap(bitmap!!)
     }
 
     fun delete() {
