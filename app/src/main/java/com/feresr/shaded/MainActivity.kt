@@ -57,6 +57,7 @@ class MainActivity : AppCompatActivity() {
 
         val options = BitmapFactory.Options()
         options.inScaled = false
+        options.inMutable = true
 
         lifecycleScope.launch {
             bitmap = BitmapFactory.decodeResource(resources, drawable.square, options)
@@ -131,8 +132,6 @@ class MainActivity : AppCompatActivity() {
 
                 lifecycleScope.launch {
                     shaded.render()
-                    image.setImageBitmap(null)
-                    image.requestLayout()
 
                 }
             }
@@ -148,7 +147,6 @@ class MainActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 lifecycleScope.launch {
                     //shaded.downScale(1)
-                    image.setImageBitmap(bitmap)
                     shaded.render()
                 }
             }

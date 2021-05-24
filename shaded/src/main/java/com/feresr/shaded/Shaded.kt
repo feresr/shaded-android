@@ -9,10 +9,12 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.withContext
+import java.util.concurrent.Executors
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.PI
 import kotlin.math.atan
@@ -20,7 +22,8 @@ import kotlin.math.atan
 class Shaded(context: Context) : CoroutineScope {
 
     override val coroutineContext: CoroutineContext =
-        newSingleThreadContext("OpenGLDispatcher") + CoroutineExceptionHandler { _, e ->
+        Executors.newSingleThreadExecutor()
+            .asCoroutineDispatcher() + CoroutineExceptionHandler { _, e ->
             Log.e(Shaded::class.java.simpleName, e.toString())
         } + SupervisorJob()
 
