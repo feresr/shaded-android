@@ -46,7 +46,6 @@ class Shaded(context: Context) : CoroutineScope {
     private val snapYTo = atan(HALF_QUAD / CAMERAZ) * (180f / PI.toFloat()) * 2
     private var fov = snapYTo
 
-
     suspend fun addFilter(filter: Filter) = withContext(coroutineContext) {
         filters.add(filter)
     }
@@ -55,17 +54,22 @@ class Shaded(context: Context) : CoroutineScope {
         filters.remove(filter)
     }
 
-    suspend fun setBitmap(bitmap: Bitmap, recycle: Boolean) = withContext(coroutineContext) {
+    suspend fun setBitmap(bitmap: Bitmap) = withContext(coroutineContext) {
         previewPingPongRenderer.setData(bitmap)
-        previewPingPongRenderer.resize(downScale)
-        if (recycle) bitmap.recycle()
     }
 
-    suspend fun getBitmap(withFilters: List<Filter> = filters): Bitmap {
-        return withContext(coroutineContext) {
-            previewPingPongRenderer.renderToBitmap(withFilters)
+    suspend fun render() {
+        withContext(coroutineContext) {
+            previewPingPongRenderer.renderToBitmap(filters)
         }
     }
+
+//    // return a copy
+//    suspend fun getBitmap(withFilters: List<Filter> = filters): Bitmap {
+//        return withContext(coroutineContext) {
+//            previewPingPongRenderer.renderToBitmap(withFilters)
+//        }
+//    }
 
     fun dispose() {
         // launch independently of the parent scope and finish
@@ -76,17 +80,17 @@ class Shaded(context: Context) : CoroutineScope {
             this@Shaded.cancel()
         }
     }
-
-    /**
-     * Downscaling allows for faster rendering
-     */
-    suspend fun downScale(factor: Int) {
-        withContext(coroutineContext) {
-            if (downScale == factor) return@withContext
-            downScale = factor
-            previewPingPongRenderer.resize(factor)
-        }
-    }
+//
+//    /**
+//     * Downscaling allows for faster rendering
+//     */
+//    suspend fun downScale(factor: Int) {
+//        withContext(coroutineContext) {
+//            if (downScale == factor) return@withContext
+//            downScale = factor
+//            previewPingPongRenderer.resize(factor)
+//        }
+//    }
 
     suspend fun clearFilters() = withContext(coroutineContext) {
         filters.clear()

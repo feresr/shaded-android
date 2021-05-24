@@ -22,7 +22,7 @@ internal class PingPongRenderer(private val defaultFilter: Filter) {
     private var width = 0
     private var height = 0
 
-    fun resize(factor: Int) {
+    private fun resize(factor: Int) {
 
         val width = originalTexture.width() / factor
         val height = originalTexture.height() / factor
@@ -59,10 +59,6 @@ internal class PingPongRenderer(private val defaultFilter: Filter) {
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-        bitmap = bitmap ?: Bitmap.createBitmap(width, height, ARGB_8888)
-        if (bitmap?.width != width || bitmap?.height != height) {
-            bitmap = Bitmap.createScaledBitmap(bitmap!!, width, height, true)
-        }
         return latestFBO.copyToBitmap(bitmap!!)
     }
 
@@ -73,6 +69,8 @@ internal class PingPongRenderer(private val defaultFilter: Filter) {
     }
 
     fun setData(bitmap: Bitmap) {
+        this.bitmap = bitmap
         originalTexture.setData(bitmap)
+        resize(1)
     }
 }

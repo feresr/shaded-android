@@ -1,10 +1,8 @@
 package com.feresr.shaded
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.view.MotionEvent
-import android.view.MotionEvent.INVALID_POINTER_ID
-import android.view.ScaleGestureDetector
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -26,7 +24,6 @@ import kotlinx.android.synthetic.main.activity_main.changeBitmap
 import kotlinx.android.synthetic.main.activity_main.image
 import kotlinx.android.synthetic.main.activity_main.removeFilter
 import kotlinx.android.synthetic.main.activity_main.seekbar
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlin.math.cos
 import kotlin.math.sin
@@ -52,6 +49,7 @@ class MainActivity : AppCompatActivity() {
     private var filterIndex = 0
 
     private val shaded = Shaded(this)
+    private lateinit var bitmap: Bitmap
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,64 +59,9 @@ class MainActivity : AppCompatActivity() {
         options.inScaled = false
 
         lifecycleScope.launch {
-            shaded.setBitmap(
-                BitmapFactory.decodeResource(resources, drawable.square, options),
-                true
-            )
-
-            image.setImageBitmap(shaded.getBitmap())
-        }
-
-
-        val scaleGestureDetector =
-            ScaleGestureDetector(this, object : ScaleGestureDetector.OnScaleGestureListener {
-                override fun onScaleBegin(detector: ScaleGestureDetector?): Boolean = true
-                override fun onScaleEnd(detector: ScaleGestureDetector?) {}
-                override fun onScale(detector: ScaleGestureDetector): Boolean {
-                    shaded.changeZoomBy(detector.scaleFactor)
-                    return true
-                }
-            })
-
-        var lastTouchX = 0f
-        var lastTouchY = 0f
-        var activePointerId = 0
-
-        image.setOnTouchListener { v, event ->
-            if (event.pointerCount >= 2) scaleGestureDetector.onTouchEvent(event)
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    activePointerId = event.getPointerId(0)
-                    lastTouchX = event.x
-                    lastTouchY = event.y
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    if (activePointerId != INVALID_POINTER_ID) {
-                        if (event.pointerCount == 1) {
-                            val (x: Float, y: Float) = event.x to event.y
-                            shaded.moveCameraBy((lastTouchX - x), (y - lastTouchY))
-                            lastTouchX = x
-                            lastTouchY = y
-                        }
-
-                    }
-                }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    activePointerId = INVALID_POINTER_ID
-                    v.performClick()
-                }
-                MotionEvent.ACTION_POINTER_UP -> {
-                    event.getPointerId(event.actionIndex)
-                        .takeIf { it == activePointerId }
-                        ?.run {
-                            val newPointerIndex = if (event.actionIndex == 0) 1 else 0
-                            lastTouchX = event.getX(newPointerIndex)
-                            lastTouchY = event.getY(newPointerIndex)
-                            activePointerId = event.getPointerId(newPointerIndex)
-                        }
-                }
-            }
-            return@setOnTouchListener true
+            bitmap = BitmapFactory.decodeResource(resources, drawable.square, options)
+            shaded.setBitmap(bitmap)
+            image.setImageBitmap(bitmap)
         }
 
         removeFilter.setOnClickListener {
@@ -126,23 +69,24 @@ class MainActivity : AppCompatActivity() {
 
             lifecycleScope.launch {
                 shaded.clearFilters()
-                image.setImageBitmap(shaded.getBitmap())
+                shaded.render()
             }
         }
 
         changeBitmap.setOnClickListener {
             lifecycleScope.launch {
 
-                shaded.setBitmap(
-                    BitmapFactory.decodeResource(
-                        resources,
-                        bitmaps[currentBitmap % bitmaps.size],
-                        options
-                    ),
-                    true
+                bitmap = BitmapFactory.decodeResource(
+                    resources,
+                    bitmaps[currentBitmap % bitmaps.size],
+                    options
                 )
+
+                shaded.setBitmap(bitmap)
+
+                image.setImageBitmap(bitmap)
                 currentBitmap++
-                image.setImageBitmap(shaded.getBitmap())
+                shaded.render()
             }
 
         }
@@ -151,7 +95,7 @@ class MainActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 shaded.addFilter(filters[filterIndex % filters.size])
                 filterIndex++
-                image.setImageBitmap(shaded.getBitmap())
+                shaded.render()
             }
         }
     }
@@ -186,21 +130,26 @@ class MainActivity : AppCompatActivity() {
                 grain.grain = progress.toFloat() / 100f
 
                 lifecycleScope.launch {
-                    image.setImageBitmap(shaded.getBitmap())
+                    shaded.render()
+                    image.setImageBitmap(null)
+                    image.requestLayout()
+
                 }
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
                 // Optional: downscale (better performance on large bitmaps)
                 lifecycleScope.launch {
-                    shaded.downScale(4)
+
+                    //shaded.downScale(4)
                 }
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 lifecycleScope.launch {
-                    shaded.downScale(1)
-                    image.setImageBitmap(shaded.getBitmap())
+                    //shaded.downScale(1)
+                    image.setImageBitmap(bitmap)
+                    shaded.render()
                 }
             }
         })
