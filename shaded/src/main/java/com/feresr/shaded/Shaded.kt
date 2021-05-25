@@ -12,7 +12,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 import kotlin.coroutines.CoroutineContext
@@ -39,32 +38,19 @@ class Shaded(context: Context) : CoroutineScope {
         }
     }
 
-    private val filters = mutableListOf<Filter>()
-
     private var cameraX = 0.0f
     private var cameraY = 0.0f
-    private var downScale: Int = 1
     private var zoom = 1f
 
     private val snapYTo = atan(HALF_QUAD / CAMERAZ) * (180f / PI.toFloat()) * 2
     private var fov = snapYTo
 
-    suspend fun addFilter(filter: Filter) = withContext(coroutineContext) {
-        filters.add(filter)
-    }
-
-    suspend fun removeFilter(filter: Filter) = withContext(coroutineContext) {
-        filters.remove(filter)
-    }
-
     suspend fun setBitmap(bitmap: Bitmap) = withContext(coroutineContext) {
         previewPingPongRenderer.setData(bitmap)
     }
 
-    suspend fun render() {
-        withContext(coroutineContext) {
-            previewPingPongRenderer.renderToBitmap(filters)
-        }
+    suspend fun render(filters: List<Filter>) = withContext(coroutineContext) {
+        previewPingPongRenderer.renderToBitmap(filters)
     }
 
 //    // return a copy
@@ -77,7 +63,6 @@ class Shaded(context: Context) : CoroutineScope {
     fun dispose() {
         // launch independently of the parent scope and finish
         launch {
-            filters.forEach { it.delete() }
             previewPingPongRenderer.delete()
             com.feresr.shaded.opengl.Context.tearDown()
             this@Shaded.cancel()
@@ -94,10 +79,6 @@ class Shaded(context: Context) : CoroutineScope {
 //            previewPingPongRenderer.resize(factor)
 //        }
 //    }
-
-    suspend fun clearFilters() = withContext(coroutineContext) {
-        filters.clear()
-    }
 
     fun changeZoomBy(z: Float) {
         zoom *= z
