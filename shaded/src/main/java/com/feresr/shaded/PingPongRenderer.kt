@@ -1,7 +1,6 @@
 package com.feresr.shaded
 
 import android.graphics.Bitmap
-import android.graphics.Bitmap.Config.ARGB_8888
 import android.opengl.GLES10.glViewport
 import android.opengl.GLES30.GL_FRAMEBUFFER
 import android.opengl.GLES30.glBindFramebuffer
@@ -9,39 +8,27 @@ import com.feresr.shaded.opengl.FrameBuffer
 import com.feresr.shaded.opengl.Texture
 
 /**
- * This class implements ping-pong rendering between textures for size [width] and [height] starting
- * off from originalTexture (which can be of any size)
+ * This class implements ping-pong rendering between textures, starting off
+ * from [originalTexture]
  */
 internal class PingPongRenderer(private val defaultFilter: Filter) {
 
     private val originalTexture: Texture = Texture()
-    private var bitmap: Bitmap? = null
 
-    private val textures = Array(2) { Texture() }
+    private val textures = Array(2) { Texture(DEFAULT_TEXTURE_SIZE, DEFAULT_TEXTURE_SIZE) }
     private val frameBuffers = Array(2) { FrameBuffer() }
-    private var width = 0
-    private var height = 0
 
-    private fun resize(factor: Int) {
-
-        val width = originalTexture.width() / factor
-        val height = originalTexture.height() / factor
-
-        textures[0].resize(width, height)
-        textures[1].resize(width, height)
-
+    init {
         frameBuffers[0].setColorAttachment(textures[1])
         frameBuffers[1].setColorAttachment(textures[0])
-
-        this.width = width
-        this.height = height
     }
 
     /**
      * Renders all filters to a texture with the dimensions specified in its constructor
      */
-    fun renderToBitmap(filters: List<Filter>): Bitmap {
-        glViewport(0, 0, width, height)
+    fun render(target: Bitmap, filters: List<Filter>): Bitmap {
+        textures.forEach { it.resize(target.width, target.height) }
+        glViewport(0, 0, target.width, target.height)
 
         // Write original image (no filters)
         originalTexture.bind() // read from
@@ -59,7 +46,7 @@ internal class PingPongRenderer(private val defaultFilter: Filter) {
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-        return latestFBO.copyToBitmap(bitmap!!)
+        return latestFBO.copyInto(target)
     }
 
     fun delete() {
@@ -68,9 +55,16 @@ internal class PingPongRenderer(private val defaultFilter: Filter) {
         originalTexture.delete()
     }
 
+    /**
+     * Uploads this bitmap into [originalTexture] (GPU graphics memory)
+     * resizes the texture to fit. Performes no changes to the bitmap
+     * passed in as a parameter.
+     */
     fun setData(bitmap: Bitmap) {
-        this.bitmap = bitmap
         originalTexture.setData(bitmap)
-        resize(1)
+    }
+
+    companion object {
+        const val DEFAULT_TEXTURE_SIZE = 10
     }
 }

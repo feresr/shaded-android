@@ -23,7 +23,6 @@ Java_com_feresr_shaded_opengl_Texture_initTexture(JNIEnv *jenv, jobject thiz) {
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_feresr_shaded_opengl_Texture_deleteTexture(JNIEnv *jenv, jobject thiz, jint texture) {
-    LOGI("Texture_deleteTexture");
     auto id = (GLuint) texture;
     glDeleteTextures(1, &id);
 }
@@ -31,28 +30,15 @@ Java_com_feresr_shaded_opengl_Texture_deleteTexture(JNIEnv *jenv, jobject thiz, 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_com_feresr_shaded_opengl_Texture_getBoundTexture(JNIEnv *jenv, jobject thiz) {
-    LOGI("Texture_getBoundTexture");
     GLint id;
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &id);
     return (jint) id;
 }
 
-//
-//// Loads the bitmap (if set) to the currently bound openGL texture
-//extern "C"
-//JNIEXPORT void JNICALL
-//Java_com_feresr_shaded_Shaded_loadIntoOpenGl(JNIEnv *jenv, jclass thiz, jint texture) {
-//    if (current.pixels == NULL) return;
-//    glBindTexture(GL_TEXTURE_2D, texture);
-//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, current.width, current.height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-//                 current.pixels);
-//}
-
 // Stores the bitmap into native memory to avoid OOMs on the JVM
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_feresr_shaded_opengl_Texture_storeBitmap(JNIEnv *jenv, jobject thiz, jobject src) {
-    LOGI("Texture_storeBitmap");
     AndroidBitmapInfo srcInfo;
 
     int opResult = 0;

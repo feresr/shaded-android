@@ -36,7 +36,7 @@ internal class FrameBuffer(private val isScreenBuffer: Boolean = false) {
         return glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE
     }
 
-    fun copyToBitmap(bitmap : Bitmap): Bitmap {
+    fun copyInto(bitmap : Bitmap): Bitmap {
         bind()
         val success = getBitmap(bitmap)
         if (!success) throw IllegalStateException("Could not retrieve bitmap from framebuffer $id")

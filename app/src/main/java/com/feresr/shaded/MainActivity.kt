@@ -44,12 +44,14 @@ class MainActivity : AppCompatActivity() {
     val vig = FilterVignette(this, FilterVignette.VignetteConfig())
 
     private val filters = arrayOf(exposure, blur, grain, vib, highShadows, saturation, bright, vig)
+    private val appliedFilters = mutableListOf<Filter>()
     private val bitmaps = arrayOf(drawable.watch, drawable.tv, drawable.ducks, drawable.square)
     private var currentBitmap = 0
     private var filterIndex = 0
 
     private val shaded = Shaded(this)
-    private lateinit var bitmap: Bitmap
+    private lateinit var original: Bitmap
+    private lateinit var canvas: Bitmap
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,43 +62,45 @@ class MainActivity : AppCompatActivity() {
         options.inMutable = true
 
         lifecycleScope.launch {
-            bitmap = BitmapFactory.decodeResource(resources, drawable.square, options)
-            shaded.setBitmap(bitmap)
-            image.setImageBitmap(bitmap)
+            original = BitmapFactory.decodeResource(resources, drawable.square, options)
+            shaded.upload(original)
+
+            canvas = Bitmap.createScaledBitmap(
+                original, original.width / 8, original.height / 8, true
+            )
+            image.setImageBitmap(canvas)
         }
 
         removeFilter.setOnClickListener {
             filterIndex = 0
-
+            appliedFilters.clear()
             lifecycleScope.launch {
-                shaded.clearFilters()
-                shaded.render()
+                shaded.render(canvas, appliedFilters)
             }
         }
 
         changeBitmap.setOnClickListener {
             lifecycleScope.launch {
 
-                bitmap = BitmapFactory.decodeResource(
+                original = BitmapFactory.decodeResource(
                     resources,
                     bitmaps[currentBitmap % bitmaps.size],
                     options
                 )
 
-                shaded.setBitmap(bitmap)
+                shaded.upload(original)
 
-                image.setImageBitmap(bitmap)
                 currentBitmap++
-                shaded.render()
+                shaded.render(canvas, appliedFilters)
             }
 
         }
         addFilter.setOnClickListener {
             //shaded.clearFilters()
             lifecycleScope.launch {
-                shaded.addFilter(filters[filterIndex % filters.size])
+                appliedFilters.add(filters[filterIndex % filters.size])
                 filterIndex++
-                shaded.render()
+                shaded.render(canvas, appliedFilters)
             }
         }
     }
@@ -131,8 +135,8 @@ class MainActivity : AppCompatActivity() {
                 grain.grain = progress.toFloat() / 100f
 
                 lifecycleScope.launch {
-                    shaded.render()
-
+                    shaded.render(canvas, appliedFilters)
+                    image.setImageBitmap(canvas)
                 }
             }
 
@@ -147,7 +151,8 @@ class MainActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
                 lifecycleScope.launch {
                     //shaded.downScale(1)
-                    shaded.render()
+                    image.setImageBitmap(original)
+                    shaded.render(original, appliedFilters)
                 }
             }
         })

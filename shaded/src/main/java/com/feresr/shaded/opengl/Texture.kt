@@ -20,8 +20,8 @@ internal class Texture(width: Int? = null, height: Int? = null) {
     private val internalFormat = GL_RGBA8
     private val dataFormat = GL_RGBA
 
-    private var w: Int? = width
-    private var h: Int? = height
+    private var w: Int? = null
+    private var h: Int? = null
 
     init {
         if (width != null && height != null) resize(width, height)
@@ -45,6 +45,7 @@ internal class Texture(width: Int? = null, height: Int? = null) {
     }
 
     fun resize(width: Int, height: Int) {
+        if (this.w == width && this.h == height) return
         if (width < 0 || height < 0) throw IllegalArgumentException("Texture width/height can't be less than 0")
         this.w = width
         this.h = height
