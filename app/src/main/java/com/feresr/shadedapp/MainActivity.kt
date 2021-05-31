@@ -1,4 +1,4 @@
-package com.feresr.shaded
+package com.feresr.shadedapp
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -6,7 +6,10 @@ import android.os.Bundle
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.feresr.shaded.Filter
+import com.feresr.shaded.R
 import com.feresr.shaded.R.drawable
+import com.feresr.shaded.Shaded
 import com.feresr.shaded.shaders.FilterBlur
 import com.feresr.shaded.shaders.FilterBrightness
 import com.feresr.shaded.shaders.FilterContrast
