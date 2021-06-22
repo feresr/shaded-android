@@ -6,7 +6,7 @@ import com.feresr.shaded.R
 
 class FilterGrain(
     context: Context,
-    @Volatile var grain: Float = 0f
+    var grain: Float = 0f
 ) : Filter(context, R.raw.grain) {
 
     var location = 0

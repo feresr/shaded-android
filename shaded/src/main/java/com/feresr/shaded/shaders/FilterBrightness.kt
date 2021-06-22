@@ -6,7 +6,7 @@ import com.feresr.shaded.R
 
 class FilterBrightness(
     context: Context,
-    @Volatile var brightness: Float = 0.5f
+    var brightness: Float = 0.5f
 ) : Filter(context, R.raw.brightness) {
 
     private var value = 0

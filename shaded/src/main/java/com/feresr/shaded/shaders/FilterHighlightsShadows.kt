@@ -6,8 +6,8 @@ import com.feresr.shaded.R
 
 class FilterHighlightsShadows(
     context: Context,
-    @Volatile var highlights: Float = 1.0f,
-    @Volatile var shadows: Float = 0.0f
+    var highlights: Float = 1.0f,
+    var shadows: Float = 0.0f
 ) : Filter(context, R.raw.highlights_shadows) {
 
     private var hLocation = 0

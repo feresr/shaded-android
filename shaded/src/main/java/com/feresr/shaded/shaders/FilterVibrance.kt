@@ -4,7 +4,7 @@ import android.content.Context
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 
-class FilterVibrance(context: Context, @Volatile var vibrance: Float = 0.5f) :
+class FilterVibrance(context: Context, var vibrance: Float = 0.5f) :
     Filter(context, R.raw.vibrance) {
 
     private var value = 0

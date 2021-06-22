@@ -5,7 +5,7 @@ import android.opengl.GLES30
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 
-class FilterContrast(context: Context, @Volatile var contrast: Float = 0.5f) :
+class FilterContrast(context: Context, var contrast: Float = 0.5f) :
     Filter(context, R.raw.contrast) {
 
     private var value = 0

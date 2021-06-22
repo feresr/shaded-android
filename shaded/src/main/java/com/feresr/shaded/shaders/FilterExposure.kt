@@ -6,7 +6,7 @@ import com.feresr.shaded.R
 
 class FilterExposure(
     context: Context,
-    @Volatile var exposure: Float = 0.5f
+    var exposure: Float = 0.5f
 ) : Filter(context, R.raw.exposure) {
 
     private var value = 0

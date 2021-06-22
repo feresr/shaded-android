@@ -6,8 +6,8 @@ import com.feresr.shaded.R
 
 class FilterTemperature(
     context: Context,
-    @Volatile var temperature: Float = 0.5f,
-    @Volatile var tint: Float = 0.5f
+    var temperature: Float = 0.5f,
+    var tint: Float = 0.5f
 ) :
     Filter(context, R.raw.temperature) {
 

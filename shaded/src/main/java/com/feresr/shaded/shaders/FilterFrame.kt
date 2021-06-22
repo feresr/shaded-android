@@ -4,20 +4,19 @@ import android.content.Context
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 
-class FilterInverse(
+class FilterFrame(
     context: Context,
-    var alpha: Float
-) : Filter(context, R.raw.inverse) {
+    var adjust: Float = 0.0f
+) : Filter(context, vshader = R.raw.frame) {
 
-    private var location: Int = 0;
-
+    private var value = 0
     override fun bindUniforms() {
         super.bindUniforms()
-        location = shader.getUniformLocation("alpha")
+        value = shader.getUniformLocation("frameAdjust")
     }
 
     override fun updateUniforms() {
         super.updateUniforms()
-        shader.setFloat(location, alpha)
+        shader.setFloat(value, 1.0f - adjust)
     }
 }

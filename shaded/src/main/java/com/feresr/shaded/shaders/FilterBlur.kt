@@ -6,8 +6,8 @@ import com.feresr.shaded.R
 
 class FilterBlur(
     context: Context,
-    @Volatile var x: Float = 0f,
-    @Volatile var y: Float = 0f
+    var x: Float = 0f,
+    var y: Float = 0f
 ) : Filter(context, R.raw.blur) {
 
     private var location = 0

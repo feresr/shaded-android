@@ -4,7 +4,7 @@ import android.content.Context
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 
-class FilterVignette(context: Context, @Volatile var config: VignetteConfig) :
+class FilterVignette(context: Context, var config: VignetteConfig) :
     Filter(context, R.raw.vignette) {
 
     private var vignetteCenter: Int = 0

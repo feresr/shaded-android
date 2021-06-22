@@ -38,8 +38,8 @@ class Shaded(context: Context) : CoroutineScope {
         previewPingPongRenderer.setData(bitmap)
     }
 
-    suspend fun render(target: Bitmap, filters: List<Filter>) = withContext(coroutineContext) {
-        previewPingPongRenderer.render(target, filters)
+    suspend fun render(target: Bitmap, filters: () -> List<Filter>) = withContext(coroutineContext) {
+        previewPingPongRenderer.render(target, filters())
     }
 
     fun dispose() {

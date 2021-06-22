@@ -14,6 +14,7 @@ import com.feresr.shaded.shaders.FilterBlur
 import com.feresr.shaded.shaders.FilterBrightness
 import com.feresr.shaded.shaders.FilterContrast
 import com.feresr.shaded.shaders.FilterExposure
+import com.feresr.shaded.shaders.FilterFrame
 import com.feresr.shaded.shaders.FilterGrain
 import com.feresr.shaded.shaders.FilterHighlightsShadows
 import com.feresr.shaded.shaders.FilterHue
@@ -33,6 +34,7 @@ import kotlin.math.sin
 
 class MainActivity : AppCompatActivity() {
 
+    val frame = FilterFrame(this, 1.0f)
     val contrast = FilterContrast(this)
     val hue = FilterHue(this, sin(0f))
     val inverse = FilterInverse(this, sin(0f))
@@ -46,7 +48,7 @@ class MainActivity : AppCompatActivity() {
     val blur = FilterBlur(this, sin(0f), 0f)
     val vig = FilterVignette(this, FilterVignette.VignetteConfig())
 
-    private val filters = arrayOf(exposure, blur, grain, vib, highShadows, saturation, bright, vig)
+    private val filters = arrayOf(frame, blur, grain, vib, highShadows, saturation, bright, vig)
     private val appliedFilters = mutableListOf<Filter>()
     private val bitmaps = arrayOf(drawable.watch, drawable.tv, drawable.ducks, drawable.square)
     private var currentBitmap = 0
@@ -69,7 +71,7 @@ class MainActivity : AppCompatActivity() {
             shaded.upload(original)
 
             canvas = Bitmap.createScaledBitmap(
-                original, original.width / 8, original.height / 8, true
+                original, original.width / 2, original.height / 2, true
             )
             image.setImageBitmap(canvas)
         }
@@ -78,7 +80,7 @@ class MainActivity : AppCompatActivity() {
             filterIndex = 0
             appliedFilters.clear()
             lifecycleScope.launch {
-                shaded.render(canvas, appliedFilters)
+                shaded.render(canvas) { appliedFilters }
             }
         }
 
@@ -94,7 +96,7 @@ class MainActivity : AppCompatActivity() {
                 shaded.upload(original)
 
                 currentBitmap++
-                shaded.render(canvas, appliedFilters)
+                shaded.render(canvas) { appliedFilters }
             }
 
         }
@@ -103,7 +105,7 @@ class MainActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 appliedFilters.add(filters[filterIndex % filters.size])
                 filterIndex++
-                shaded.render(canvas, appliedFilters)
+                shaded.render(canvas) { appliedFilters }
             }
         }
     }
@@ -136,9 +138,10 @@ class MainActivity : AppCompatActivity() {
                 vib.vibrance = progress.toFloat() / 100f
                 saturation.saturation = progress.toFloat() / 100f
                 grain.grain = progress.toFloat() / 100f
+                frame.adjust = progress.toFloat() / 100f
 
                 lifecycleScope.launch {
-                    shaded.render(canvas, appliedFilters)
+                    shaded.render(canvas) { appliedFilters }
                     image.setImageBitmap(canvas)
                 }
             }
@@ -155,7 +158,7 @@ class MainActivity : AppCompatActivity() {
                 lifecycleScope.launch {
                     //shaded.downScale(1)
                     image.setImageBitmap(original)
-                    shaded.render(original, appliedFilters)
+                    shaded.render(original) { appliedFilters }
                 }
             }
         })
