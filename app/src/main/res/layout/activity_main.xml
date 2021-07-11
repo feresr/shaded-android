@@ -9,12 +9,109 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <SeekBar
-        android:id="@+id/seekbar"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:padding="52dp" />
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/rainbow"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/redbtn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#FF0000"
+                android:tag="#FF0000" />
+
+            <View
+                android:id="@+id/orangebtn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#FF8000"
+                android:tag="#FF8000" />
+
+            <View
+                android:id="@+id/yellowbtn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#FFFF00"
+                android:tag="#FFFF00" />
+
+            <View
+                android:id="@+id/greenbtn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#00FF00"
+                android:tag="#00FF00" />
+
+            <View
+                android:id="@+id/cyanbtn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#00FFFF"
+                android:tag="#00FFFF" />
+
+            <View
+                android:id="@+id/blue"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#0000FF"
+                android:tag="#0000FF" />
+
+            <View
+                android:id="@+id/purplebtn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#8000FF"
+                android:tag="#8000FF" />
+
+            <View
+                android:id="@+id/fuchsiabtn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="#FF00FF"
+                android:tag="#FF00FF" />
+        </LinearLayout>
+
+        <SeekBar
+            android:id="@+id/seekbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:min="-100"
+            android:padding="12dp" />
+
+        <SeekBar
+            android:id="@+id/saturationSeekbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:max="100"
+            android:min="-100"
+            android:padding="12dp" />
+
+        <SeekBar
+            android:id="@+id/luminanceSeekbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:max="100"
+            android:min="-100"
+            android:padding="12dp" />
+    </LinearLayout>
 
     <ImageView
         android:id="@+id/result"

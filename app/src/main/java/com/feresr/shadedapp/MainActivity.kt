@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
@@ -16,6 +17,7 @@ import com.feresr.shaded.shaders.FilterContrast
 import com.feresr.shaded.shaders.FilterExposure
 import com.feresr.shaded.shaders.FilterFrame
 import com.feresr.shaded.shaders.FilterGrain
+import com.feresr.shaded.shaders.FilterHSL
 import com.feresr.shaded.shaders.FilterHighlightsShadows
 import com.feresr.shaded.shaders.FilterHue
 import com.feresr.shaded.shaders.FilterInverse
@@ -26,7 +28,10 @@ import com.feresr.shaded.shaders.FilterVignette
 import kotlinx.android.synthetic.main.activity_main.addFilter
 import kotlinx.android.synthetic.main.activity_main.changeBitmap
 import kotlinx.android.synthetic.main.activity_main.image
+import kotlinx.android.synthetic.main.activity_main.luminanceSeekbar
+import kotlinx.android.synthetic.main.activity_main.rainbow
 import kotlinx.android.synthetic.main.activity_main.removeFilter
+import kotlinx.android.synthetic.main.activity_main.saturationSeekbar
 import kotlinx.android.synthetic.main.activity_main.seekbar
 import kotlinx.coroutines.launch
 import kotlin.math.cos
@@ -40,6 +45,7 @@ class MainActivity : AppCompatActivity() {
     val inverse = FilterInverse(this, sin(0f))
     val bright = FilterBrightness(this, sin(0f))
     val exposure = FilterExposure(this, sin(0f))
+    val hsl = FilterHSL(this)
     val temperature = FilterTemperature(this)
     val grain = FilterGrain(this)
     val vib = FilterVibrance(this)
@@ -48,15 +54,17 @@ class MainActivity : AppCompatActivity() {
     val blur = FilterBlur(this, sin(0f), 0f)
     val vig = FilterVignette(this, FilterVignette.VignetteConfig())
 
-    private val filters = arrayOf(frame, blur, grain, vib, highShadows, saturation, bright, vig)
+    private val filters = arrayOf(hsl, blur, grain, vib, highShadows, saturation, bright, vig)
     private val appliedFilters = mutableListOf<Filter>()
-    private val bitmaps = arrayOf(drawable.watch, drawable.tv, drawable.ducks, drawable.square)
+    private val bitmaps = arrayOf(drawable.rainbow, drawable.visible, drawable.tv, drawable.ducks, drawable.square)
     private var currentBitmap = 0
     private var filterIndex = 0
 
     private val shaded = Shaded(this)
     private lateinit var original: Bitmap
     private lateinit var canvas: Bitmap
+
+    private var colorIndexSelected = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,6 +108,16 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
+
+        rainbow.children.forEach { it.alpha = 0.5f }
+        rainbow.children.forEachIndexed() { index, view ->
+            view.setOnClickListener {
+                colorIndexSelected = index
+                rainbow.children.forEach { it.alpha = 0.5f }
+                view.alpha = 1.0f
+            }
+        }
+
         addFilter.setOnClickListener {
             //shaded.clearFilters()
             lifecycleScope.launch {
@@ -117,6 +135,55 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+        luminanceSeekbar.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    hsl.values[colorIndexSelected * 3 + 2] = progress.toFloat() / 100f
+                    lifecycleScope.launch {
+                        shaded.render(canvas) { appliedFilters }
+                        image.setImageBitmap(canvas)
+                    }
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+                }
+
+            }
+        )
+
+        saturationSeekbar.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(
+                    seekBar: SeekBar?,
+                    progress: Int,
+                    fromUser: Boolean
+                ) {
+                    hsl.values[colorIndexSelected * 3 + 1] = progress.toFloat() / 100f
+                    lifecycleScope.launch {
+                        shaded.render(canvas) { appliedFilters }
+                        image.setImageBitmap(canvas)
+                    }
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+
+                }
+
+            }
+        )
         seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 hue.value = sin(progress.toFloat() / 10f)
@@ -139,6 +206,7 @@ class MainActivity : AppCompatActivity() {
                 saturation.saturation = progress.toFloat() / 100f
                 grain.grain = progress.toFloat() / 100f
                 frame.adjust = progress.toFloat() / 100f
+                hsl.values[colorIndexSelected * 3 + 0] = progress.toFloat() / 100f
 
                 lifecycleScope.launch {
                     shaded.render(canvas) { appliedFilters }
