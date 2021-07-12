@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity() {
 
     private val filters = arrayOf(hsl, blur, grain, vib, highShadows, saturation, bright, vig)
     private val appliedFilters = mutableListOf<Filter>()
-    private val bitmaps = arrayOf(drawable.rainbow, drawable.visible, drawable.tv, drawable.ducks, drawable.square)
+    private val bitmaps = arrayOf(drawable.testphoto, drawable.rainbow, drawable.visible, drawable.tv, drawable.ducks, drawable.square)
     private var currentBitmap = 0
     private var filterIndex = 0
 

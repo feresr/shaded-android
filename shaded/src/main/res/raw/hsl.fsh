@@ -68,34 +68,38 @@ void main ()
 
     // convert the sampled color to HSL
     vec3 hsl = rgb2hsl(color.rgb);
+    float max = 1.0f/12.0f;
 
     for (int i = 0; i < 12; i++) {
         float diff = hsl.x - (float(i) / 12.0f);
         float diffT = min(diff, 1.0 - diff);
-        float max = 1.0f/12.0f;
         impacts[i] = clamp(max - abs(diffT), 0.0, max);
+        impacts[i] = impacts[i] / max;//normalise
     }
 
     vec3[12] rvalues = vec3[12](
-        values[0],
-        values[1],
-        values[2],
-        (values[2] + values[3]) / 2.0f,
-        values[3],
-        (values[3] + values[4]) / 2.0f,
-        values[4],
-        (values[4] + values[5]) / 2.0f,
-        values[5],
-        values[6],
-        values[7],
-        (values[7] + values[0]) / 2.0f
-    );
+    values[0], // red
+    values[1], // orange
+    values[2], // yellow
+    (values[2] + values[3]) / 2.0f, //invisible
+    values[3], //green
+    (values[3] + values[4]) / 2.0f, // invisible
+    values[4], // cyan
+    (values[4] + values[5]) / 2.0f, // invisible
+    values[5],
+    values[6],
+    values[7],
+    (values[7] + values[0]) / 2.0f);
 
+
+    // rvalues: -1 to 1 (how much to affect)
+    // impact: should this go from 0 to 1 (how much this color/fragment should be affected)
     for (int i = 0; i < 12; i++) {
-        hsl.x += rvalues[i][0] * impacts[i];
-        hsl.y += rvalues[i][1] * impacts[i];
-        hsl.z += rvalues[i][2] * impacts[i];
+        hsl.x *= 1.0 + rvalues[i][0] * impacts[i] * 0.5f;// hue goes from -1.0f/12.0f to 1.0f/12.0f
+        hsl.y *= 1.0 + (rvalues[i][1] * impacts[i]);
+        hsl.z *= 1.0 + rvalues[i][2] * impacts[i];
     }
+
 
     // convert back to rgb
     color.xyz = hsl2rgb(hsl);
