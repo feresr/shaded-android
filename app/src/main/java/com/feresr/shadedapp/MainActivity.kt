@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
     val blur = FilterBlur(this, sin(0f), 0f)
     val vig = FilterVignette(this, FilterVignette.VignetteConfig())
 
-    private val filters = arrayOf(hsl, blur, grain, vib, highShadows, saturation, bright, vig)
+    private val filters = arrayOf(grain, blur, grain, vib, highShadows, saturation, bright, vig)
     private val appliedFilters = mutableListOf<Filter>()
     private val bitmaps = arrayOf(drawable.rrr, drawable.testphoto, drawable.lighthouse, drawable.tv, drawable.ducks, drawable.square)
     private var currentBitmap = 0

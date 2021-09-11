@@ -1,13 +1,13 @@
 #version 300 es
-precision mediump float;
+precision highp float;
 uniform sampler2D tex_sampler;
 uniform float grain;
 
 in vec2 v_texcoord;
 out vec4 FragColor;
 
-float Grain(vec2 st) {
-    return fract(sin(dot(st.xy, vec2(17.0,180.)))* 2500.0);
+float Grain(vec2 co) {
+    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
 

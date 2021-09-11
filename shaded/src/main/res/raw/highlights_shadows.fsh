@@ -5,7 +5,7 @@ uniform float highlights;
 uniform float shadows;
 uniform sampler2D tex_sampler;
 
-const mediump vec3 luminanceWeighting = vec3(0.3, 0.3, 0.3);
+const vec3 luminanceWeighting = vec3(0.33, 0.33, 0.33);
 
 in vec2 v_texcoord;
 
@@ -13,7 +13,7 @@ out vec4 FragColor;
 
 void main()
 {
-    lowp vec4 source = texture(tex_sampler, v_texcoord);
+    vec4 source = texture(tex_sampler, v_texcoord);
     mediump float luminance = dot(source.rgb, luminanceWeighting);
 
     mediump float shadow = clamp((pow(luminance, 1.0/(shadows+1.0)) + (-0.76)*pow(luminance, 2.0/(shadows+1.0))) - luminance, 0.0, 1.0);

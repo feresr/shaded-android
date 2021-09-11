@@ -17,14 +17,14 @@ open class Filter(
 
     fun render() {
         if (!initialized) {
-            shader = Shader(
-                context.resources.openRawResource(fshader).reader().readText(),
-                context.resources.openRawResource(vshader).reader().readText()
-            )
+            val fragment = context.resources.openRawResource(fshader).reader().use { it.readText() }
+            val vertex = context.resources.openRawResource(vshader).reader().use { it.readText() }
+            shader = Shader(fragment, vertex)
             bindUniforms()
             initialized = true
         }
         shader.bind {
+            //TODO: SEND THE IMAGE DIMENSIONS HERE? SOME SHADERS NEED IT! (
             updateUniforms()
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
         }
