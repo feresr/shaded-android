@@ -4,8 +4,10 @@ import android.content.Context
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 
-class FilterVignette(context: Context, var config: VignetteConfig) :
+class FilterVignette(context: Context) :
     Filter(context, R.raw.vignette) {
+
+    var config: VignetteConfig = VignetteConfig()
 
     private var vignetteCenter: Int = 0
     private var vignetteColor: Int = 0
