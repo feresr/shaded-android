@@ -4,15 +4,25 @@ import android.content.Context
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 
-class FilterVignette(context: Context) :
-    Filter(context, R.raw.vignette) {
+class FilterVignette(context: Context) : Filter(context, R.raw.vignette) {
 
-    var config: VignetteConfig = VignetteConfig()
+    private var config: VignetteConfig = VignetteConfig()
 
     private var vignetteCenter: Int = 0
     private var vignetteColor: Int = 0
     private var vignetteStart: Int = 0
     private var vignetteEnd: Int = 0
+
+    override fun updateUniforms(value: FloatArray) {
+        config.start = value[0]
+        config.end = value.elementAtOrNull(1) ?: 0f
+        val centerX = value.elementAtOrNull(2) ?: 0.5f
+        val centerY = value.elementAtOrNull(3) ?: 0.5f
+        config.center = centerX to centerY
+        config.vignetteColorR = value.elementAtOrNull(4) ?: 0f
+        config.vignetteColorG = value.elementAtOrNull(5) ?: 0f
+        config.vignetteColorB = value.elementAtOrNull(6) ?: 0f
+    }
 
     override fun bindUniforms() {
         super.bindUniforms()
@@ -22,8 +32,8 @@ class FilterVignette(context: Context) :
         vignetteEnd = shader.getUniformLocation("vignetteEnd")
     }
 
-    override fun updateUniforms() {
-        super.updateUniforms()
+    override fun uploadUniforms() {
+        super.uploadUniforms()
         shader.setFloat(vignetteStart, config.start)
         shader.setFloat(vignetteEnd, config.end)
         shader.setFloat2(vignetteCenter, config.center.first, config.center.second)
@@ -34,12 +44,12 @@ class FilterVignette(context: Context) :
         )
     }
 
-    data class VignetteConfig(
-        val start: Float = 0f,
-        val end: Float = 0f,
-        val center: Pair<Float, Float> = 0f to 0f,
-        val vignetteColorR: Float = 0f,
-        val vignetteColorG: Float = 0f,
-        val vignetteColorB: Float = 0f
+    internal data class VignetteConfig(
+        var start: Float = 0f,
+        var end: Float = 0f,
+        var center: Pair<Float, Float> = 0f to 0f,
+        var vignetteColorR: Float = 0f,
+        var vignetteColorG: Float = 0f,
+        var vignetteColorB: Float = 0f
     )
 }

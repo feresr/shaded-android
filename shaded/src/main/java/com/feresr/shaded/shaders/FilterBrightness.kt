@@ -6,17 +6,22 @@ import com.feresr.shaded.R
 
 class FilterBrightness(
     context: Context,
-    var brightness: Float = 0.5f
 ) : Filter(context, R.raw.brightness) {
 
-    private var value = 0
-    override fun bindUniforms() {
-        super.bindUniforms()
-        value = shader.getUniformLocation("brightness")
+    private var brightness: Float = 0.5f
+    private var location = 0
+
+    override fun updateUniforms(vararg value: Float) {
+        brightness = value[0]
     }
 
-    override fun updateUniforms() {
-        super.updateUniforms()
-        shader.setFloat(value, brightness)
+    override fun bindUniforms() {
+        super.bindUniforms()
+        location = shader.getUniformLocation("brightness")
+    }
+
+    override fun uploadUniforms() {
+        super.uploadUniforms()
+        shader.setFloat(location, brightness)
     }
 }

@@ -4,19 +4,22 @@ import android.content.Context
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 
-class FilterFrame(
-    context: Context,
-    var adjust: Float = 0.0f
-) : Filter(context, vshader = R.raw.frame) {
+class FilterFrame(context: Context) : Filter(context, vshader = R.raw.frame) {
 
-    private var value = 0
-    override fun bindUniforms() {
-        super.bindUniforms()
-        value = shader.getUniformLocation("frameAdjust")
+    private var adjust: Float = 0.0f
+    private var location = 0
+
+    override fun updateUniforms(value: FloatArray) {
+        adjust = value[0]
     }
 
-    override fun updateUniforms() {
-        super.updateUniforms()
-        shader.setFloat(value, 1.0f - adjust)
+    override fun bindUniforms() {
+        super.bindUniforms()
+        location = shader.getUniformLocation("frameAdjust")
+    }
+
+    override fun uploadUniforms() {
+        super.uploadUniforms()
+        shader.setFloat(location, 1.0f - adjust)
     }
 }

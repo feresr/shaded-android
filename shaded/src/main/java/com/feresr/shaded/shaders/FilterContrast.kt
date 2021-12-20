@@ -1,22 +1,25 @@
 package com.feresr.shaded.shaders
 
 import android.content.Context
-import android.opengl.GLES30
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 
-class FilterContrast(context: Context, var contrast: Float = 0.5f) :
-    Filter(context, R.raw.contrast) {
+class FilterContrast(context: Context) : Filter(context, R.raw.contrast) {
 
-    private var value = 0
+    private var contrast: Float = 0.5f
+    private var location = 0
+
+    override fun updateUniforms(vararg value: Float) {
+        contrast = value[0]
+    }
 
     override fun bindUniforms() {
         super.bindUniforms()
-        value = shader.getUniformLocation("contrast")
+        location = shader.getUniformLocation("contrast")
     }
 
-    override fun updateUniforms() {
-        super.updateUniforms()
-        shader.setFloat(value, contrast)
+    override fun uploadUniforms() {
+        super.uploadUniforms()
+        shader.setFloat(location, contrast)
     }
 }

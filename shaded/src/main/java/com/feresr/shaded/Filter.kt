@@ -12,6 +12,7 @@ open class Filter(
     @RawRes val vshader: Int = R.raw.vertex
 ) {
 
+
     private var initialized = false
     protected lateinit var shader: Shader
 
@@ -24,17 +25,19 @@ open class Filter(
             initialized = true
         }
         shader.bind {
-            //TODO: SEND THE IMAGE DIMENSIONS HERE? SOME SHADERS NEED IT! (
-            updateUniforms()
+            //TODO: SEND THE IMAGE DIMENSIONS HERE? SOME SHADERS NEED IT!
+            uploadUniforms()
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
         }
     }
+
+    open fun updateUniforms(vararg value: Float) {}
 
     protected open fun bindUniforms() {
         //no op
     }
 
-    protected open fun updateUniforms() {
+    protected open fun uploadUniforms() {
         //no op
     }
 
@@ -42,4 +45,5 @@ open class Filter(
         shader.delete()
         initialized = false
     }
+
 }

@@ -2,6 +2,7 @@ package com.feresr.shaded
 
 import android.graphics.Bitmap
 import android.opengl.GLES10.GL_COLOR_BUFFER_BIT
+import android.opengl.GLES10.glClearColor
 import android.opengl.GLES10.glViewport
 import android.opengl.GLES30.GL_FRAMEBUFFER
 import android.opengl.GLES30.glBindFramebuffer
@@ -31,7 +32,7 @@ internal class PingPongRenderer(private val defaultFilter: Filter) {
     fun render(target: Bitmap, filters: List<Filter>): Bitmap {
         textures.forEach { it.resize(target.width, target.height) }
         glViewport(0, 0, target.width, target.height)
-
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f)
 
         // Write original image (no filters)
         originalTexture.bind() // read from

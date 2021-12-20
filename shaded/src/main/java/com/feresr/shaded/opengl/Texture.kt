@@ -64,13 +64,13 @@ internal class Texture(width: Int? = null, height: Int? = null) {
     }
 
     fun setData(bitmap: Bitmap) {
-        Log.e("OpenGl", "setting data texture $id")
+        Log.i("OpenGl", "setting data texture $id")
         bind()
         val success = storeBitmap(bitmap)
         if (!success) throw IllegalStateException("Could not store bitmap in texture $id")
         this.w = bitmap.width
         this.h = bitmap.height
-        Log.e("OpenGl", "data texture $id set")
+        Log.i("OpenGl", "data texture $id set")
     }
 
     fun delete() = deleteTexture(id)

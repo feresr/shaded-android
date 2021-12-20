@@ -66,7 +66,6 @@ class Context {
             )
             val surf: EGLSurface = EGL14.eglCreatePbufferSurface(display, config, surfAttr, 0)
 
-
             // create context
             // Context is nothing but a container that contains two things:
             //  - Internal state machine (view port, depth range, clear color, textures, VBO, FBO

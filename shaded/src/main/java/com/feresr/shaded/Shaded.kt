@@ -13,7 +13,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.concurrent.Executors.*
+import java.util.concurrent.Executors.newSingleThreadExecutor
 import kotlin.coroutines.CoroutineContext
 
 class Shaded(context: Context) : CoroutineScope {
@@ -25,6 +25,7 @@ class Shaded(context: Context) : CoroutineScope {
     private lateinit var previewPingPongRenderer: PingPongRenderer
 
     init {
+        // Init OpenGL in its own thread
         launch {
             com.feresr.shaded.opengl.Context.init()
             glDisable(GL_BLEND)
@@ -38,12 +39,14 @@ class Shaded(context: Context) : CoroutineScope {
         previewPingPongRenderer.setData(bitmap)
     }
 
-    suspend fun render(target: Bitmap, filters: () -> List<Filter>) = withContext(coroutineContext) {
-        previewPingPongRenderer.render(target, filters())
+    suspend fun render(target: Bitmap, filters: List<Filter>) {
+        withContext(coroutineContext) {
+            previewPingPongRenderer.render(target, filters)
+        }
     }
 
     fun dispose() {
-        // launch a coroutine independently of the parent scope (to avoid it being cancelled)
+        // not a suspending function: launch a coroutine independently of the parent scope (to avoid it being cancelled)
         launch {
             previewPingPongRenderer.delete()
             com.feresr.shaded.opengl.Context.tearDown()

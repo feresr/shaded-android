@@ -9,13 +9,17 @@ import com.feresr.shaded.R
  */
 internal class ScreenFilter(context: Context) : Filter(context, vshader = R.raw.vertexscreen) {
 
-    var model: FloatArray = FloatArray(16)
-    var camera: FloatArray = FloatArray(16)
-    var projection: FloatArray = FloatArray(16)
+    private var model: FloatArray = FloatArray(16)
+    private var camera: FloatArray = FloatArray(16)
+    private var projection: FloatArray = FloatArray(16)
 
     private var modelLocation = 0
     private var camLocation = 0
     private var projLocation = 0
+
+    override fun updateUniforms(value: FloatArray) {
+        // no op
+    }
 
     override fun bindUniforms() {
         super.bindUniforms()
@@ -24,8 +28,8 @@ internal class ScreenFilter(context: Context) : Filter(context, vshader = R.raw.
         projLocation = shader.getUniformLocation("projection")
     }
 
-    override fun updateUniforms() {
-        super.updateUniforms()
+    override fun uploadUniforms() {
+        super.uploadUniforms()
         shader.setMat4(modelLocation, model)
         shader.setMat4(camLocation, camera)
         shader.setMat4(projLocation, projection)

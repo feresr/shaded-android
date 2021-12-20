@@ -4,14 +4,18 @@ import android.content.Context
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 
-class FilterHighlightsShadows(
-    context: Context,
-    var highlights: Float = 1.0f,
-    var shadows: Float = 0.0f
-) : Filter(context, R.raw.highlights_shadows) {
+class FilterHighlightsShadows(context: Context) : Filter(context, R.raw.highlights_shadows) {
+
+    private var highlights: Float = 1.0f
+    private var shadows: Float = 0.0f
 
     private var hLocation = 0
     private var sLocation = 0
+
+    override fun updateUniforms(value: FloatArray) {
+        highlights = value[0]
+        shadows = value[0]
+    }
 
     override fun bindUniforms() {
         super.bindUniforms()
@@ -19,8 +23,8 @@ class FilterHighlightsShadows(
         sLocation = shader.getUniformLocation("shadows")
     }
 
-    override fun updateUniforms() {
-        super.updateUniforms()
+    override fun uploadUniforms() {
+        super.uploadUniforms()
         shader.setFloat(hLocation, highlights)
         shader.setFloat(sLocation, shadows)
     }

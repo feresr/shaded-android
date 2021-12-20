@@ -2,7 +2,7 @@ apply plugin: 'maven-publish'
 
 def LIB_GROUP_ID = 'com.feresr.shaded'
 def LIB_ARTIFACT_ID = 'shaded'
-def LIB_VERSION = '0.4.1'
+def LIB_VERSION = '0.4.3'
 
 task sourceJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
