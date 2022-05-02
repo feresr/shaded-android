@@ -14,7 +14,7 @@ class FilterHighlightsShadows(context: Context) : Filter(context, R.raw.highligh
 
     override fun updateUniforms(value: FloatArray) {
         highlights = value[0]
-        shadows = value[0]
+        shadows = value[1]
     }
 
     override fun bindUniforms() {

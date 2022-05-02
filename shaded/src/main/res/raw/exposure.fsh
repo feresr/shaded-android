@@ -9,7 +9,6 @@ out vec4 FragColor;
 void main()
 {
     vec3 hdrColor = texture(tex_sampler, v_texcoord).rgb;
-    float whiteness = (hdrColor.x + hdrColor.y + hdrColor.z) / 3.0f;
-    hdrColor += exposure * 3.0 * hdrColor * (sqrt(whiteness));
+    hdrColor = hdrColor * exp2(exposure);
     FragColor = vec4(hdrColor, 1.0);
 }

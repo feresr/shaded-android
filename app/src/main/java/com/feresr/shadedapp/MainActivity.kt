@@ -3,6 +3,7 @@ package com.feresr.shadedapp
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Log
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.children
@@ -21,6 +22,7 @@ import com.feresr.shaded.shaders.FilterHSL
 import com.feresr.shaded.shaders.FilterHighlightsShadows
 import com.feresr.shaded.shaders.FilterHue
 import com.feresr.shaded.shaders.FilterInverse
+import com.feresr.shaded.shaders.FilterRedBlue
 import com.feresr.shaded.shaders.FilterSaturation
 import com.feresr.shaded.shaders.FilterTemperature
 import com.feresr.shaded.shaders.FilterVibrance
@@ -38,6 +40,7 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.actor
 import kotlinx.coroutines.launch
+import java.util.*
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -45,7 +48,9 @@ class MainActivity : AppCompatActivity() {
     private val frame = FilterFrame(this)
     private val contrast = FilterContrast(this)
     private val hue = FilterHue(this)
+
     private val inverse = FilterInverse(this)
+    private val redblue = FilterRedBlue(this)
     private val bright = FilterBrightness(this)
     private val exposure = FilterExposure(this)
     private val hsl = FilterHSL(this)
@@ -57,7 +62,7 @@ class MainActivity : AppCompatActivity() {
     private val blur = FilterBlur(this)
     private val vig = FilterVignette(this)
 
-    private val filters = arrayOf(blur, grain, vib, highShadows, saturation, bright, vig)
+    private val filters = arrayOf(redblue, grain, vib, highShadows, saturation, bright, vig)
     private val appliedFilters = mutableListOf<Filter>()
     private val bitmaps =
         arrayOf(drawable.rrr, drawable.watch, drawable.tv, drawable.ducks, drawable.square)
@@ -78,11 +83,13 @@ class MainActivity : AppCompatActivity() {
     @OptIn(ObsoleteCoroutinesApi::class)
     val actor = lifecycleScope.actor<ActorMessage>(capacity = Channel.CONFLATED) {
         val updateFilters: suspend (Int) -> Unit = { progress: Int ->
+            Log.e("progress", progress.toString())
             hue.updateUniforms(sin(progress.toFloat() / 10f))
             contrast.updateUniforms(progress.toFloat() / 100f)
             inverse.updateUniforms(cos(progress.toFloat() / 100f))
+            grain.updateUniforms(sin(progress.toFloat() / 100f))
             bright.updateUniforms(progress.toFloat() / 100f)
-            exposure.updateUniforms(progress.toFloat() / 100f)
+            exposure.updateUniforms(progress.toFloat()/100f)
             blur.updateUniforms(
                 sin(progress.toFloat() / 1000f),
                 sin(progress.toFloat() / 1000f),
@@ -90,6 +97,7 @@ class MainActivity : AppCompatActivity() {
             hslUniforms[colorIndexSelected * 3 + 0] = progress.toFloat() / 100f
             hsl.updateUniforms(hslUniforms)
         }
+
         for (msg in channel) {
             when (msg) {
                 is Update -> {
@@ -116,6 +124,8 @@ class MainActivity : AppCompatActivity() {
         val options = BitmapFactory.Options()
         options.inScaled = false
         options.inMutable = true
+
+        val s = Stack<Int>()
 
         lifecycleScope.launch {
             original = BitmapFactory.decodeResource(resources, drawable.square, options)

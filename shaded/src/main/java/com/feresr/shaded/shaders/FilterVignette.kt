@@ -13,9 +13,9 @@ class FilterVignette(context: Context) : Filter(context, R.raw.vignette) {
     private var vignetteStart: Int = 0
     private var vignetteEnd: Int = 0
 
-    override fun updateUniforms(value: FloatArray) {
-        config.start = value[0]
-        config.end = value.elementAtOrNull(1) ?: 0f
+    override fun updateUniforms(vararg value: Float) {
+        config.start = value.elementAtOrNull(1) ?: 0f
+        config.end = value[0]
         val centerX = value.elementAtOrNull(2) ?: 0.5f
         val centerY = value.elementAtOrNull(3) ?: 0.5f
         config.center = centerX to centerY
