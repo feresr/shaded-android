@@ -61,5 +61,6 @@ Java_com_feresr_shaded_opengl_Texture_storeBitmap(JNIEnv *jenv, jobject thiz, jo
 
     AndroidBitmap_unlockPixels(jenv, src);
 
+    glGenerateMipmap(GL_TEXTURE_2D);
     return true;
 }

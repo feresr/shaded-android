@@ -1,21 +1,20 @@
 package com.feresr.shaded.opengl
 
 import android.graphics.Bitmap
+import android.opengl.GLES20
 import android.opengl.GLES20.GL_RGBA
+import android.opengl.GLES30
 import android.opengl.GLES30.GL_RGBA8
 import android.opengl.GLES30.GL_TEXTURE_2D
 import android.opengl.GLES30.GL_UNSIGNED_BYTE
 import android.opengl.GLES30.glBindTexture
 import android.opengl.GLES30.glTexImage2D
+import android.opengl.GLU
 import android.util.Log
 
-internal class Texture(width: Int? = null, height: Int? = null) {
+class Texture(width: Int? = null, height: Int? = null) {
 
     val id = initTexture()
-
-    init {
-        Log.e("TEXTURE JAVA", id.toString())
-    }
 
     private val internalFormat = GL_RGBA8
     private val dataFormat = GL_RGBA
@@ -24,6 +23,9 @@ internal class Texture(width: Int? = null, height: Int? = null) {
     private var h: Int? = null
 
     init {
+        Log.e("TEXTURE JAVA Created", id.toString())
+        // Zero is a reserved texture name and is never returned as a texture name by glGenTextures()
+        if (id == 0) throw IllegalStateException("Texture id is 0, maybe you forgot to call eglMakeCurrent?")
         if (width != null && height != null) resize(width, height)
     }
 
@@ -47,6 +49,7 @@ internal class Texture(width: Int? = null, height: Int? = null) {
     fun resize(width: Int, height: Int) {
         if (this.w == width && this.h == height) return
         if (width < 0 || height < 0) throw IllegalArgumentException("Texture width/height can't be less than 0")
+        Log.e("shaded", "resizing texture to ${width}x${height}")
         this.w = width
         this.h = height
         bind()
@@ -61,6 +64,10 @@ internal class Texture(width: Int? = null, height: Int? = null) {
             GL_UNSIGNED_BYTE,
             null
         )
+        val glError = GLES30.glGetError()
+        if (glError != GLES20.GL_NO_ERROR) {
+            throw RuntimeException("Failed to resize Texture: ${GLU.gluErrorString(glError)}");
+        }
     }
 
     fun setData(bitmap: Bitmap) {
@@ -73,7 +80,9 @@ internal class Texture(width: Int? = null, height: Int? = null) {
         Log.i("OpenGl", "data texture $id set")
     }
 
-    fun delete() = deleteTexture(id)
+    fun delete() {
+        deleteTexture(id)
+    }
 
     private external fun initTexture(): Int
     private external fun deleteTexture(id: Int)

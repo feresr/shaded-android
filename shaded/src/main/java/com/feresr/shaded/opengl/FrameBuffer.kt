@@ -9,10 +9,11 @@ import android.opengl.GLES30.glCheckFramebufferStatus
 import android.opengl.GLES30.glFramebufferTexture2D
 import javax.microedition.khronos.opengles.GL10
 
-internal class FrameBuffer(private val isScreenBuffer: Boolean = false) {
+class FrameBuffer(private val isScreenBuffer: Boolean = false) {
 
     private val id: Int = if (isScreenBuffer) 0 else initFrameBuffer()
-    private var colorAttachment: Texture? = null
+    var colorAttachment: Texture? = null
+        private set
 
     fun bind() = glBindFramebuffer(GL_FRAMEBUFFER, id)
     fun unbind() = glBindFramebuffer(GL_FRAMEBUFFER, 0)
@@ -36,7 +37,7 @@ internal class FrameBuffer(private val isScreenBuffer: Boolean = false) {
         return glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE
     }
 
-    fun copyInto(bitmap : Bitmap): Bitmap {
+    fun copyInto(bitmap: Bitmap): Bitmap {
         bind()
         val success = getBitmap(bitmap)
         if (!success) throw IllegalStateException("Could not retrieve bitmap from framebuffer $id")

@@ -8,7 +8,7 @@ class FilterBrightness(
     context: Context,
 ) : Filter(context, R.raw.brightness) {
 
-    private var brightness: Float = 0.5f
+    var brightness: Float = 0.5f
     private var location = 0
 
     override fun updateUniforms(vararg value: Float) {

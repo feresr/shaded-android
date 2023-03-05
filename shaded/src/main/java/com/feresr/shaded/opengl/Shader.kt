@@ -1,8 +1,8 @@
 package com.feresr.shaded.opengl
 
 import android.opengl.GLES20.GL_FALSE
+import android.opengl.GLES20.GL_NO_ERROR
 import android.opengl.GLES20.glDetachShader
-import android.opengl.GLES20.glUniform1fv
 import android.opengl.GLES20.glUniform2f
 import android.opengl.GLES20.glUniform3f
 import android.opengl.GLES20.glUniform3fv
@@ -30,6 +30,7 @@ import android.opengl.GLES30.glUniform1f
 import android.opengl.GLES30.glUniform1i
 import android.opengl.GLES30.glUseProgram
 import android.opengl.GLU
+import android.util.Log
 
 class Shader(vertexSource: String, fragmentSource: String) {
     private val program = loadProgram(vertexSource, fragmentSource)
@@ -60,13 +61,39 @@ class Shader(vertexSource: String, fragmentSource: String) {
     fun delete() = glDeleteProgram(program)
 
     private fun loadProgram(fragmentShader: String, vertexShader: String): Int {
+        var glError = glGetError()
+        if (glError != GL_NO_ERROR) {
+            throw RuntimeException("start program load");
+        }
         val iVShader: Int = loadShader(GL_VERTEX_SHADER, vertexShader)
+        glError = glGetError()
+        if (glError != GL_NO_ERROR) {
+            throw RuntimeException("vertex shader boom");
+        }
         val iFShader: Int = loadShader(GL_FRAGMENT_SHADER, fragmentShader)
+        glError = glGetError()
+        if (glError != GL_NO_ERROR) {
+            throw RuntimeException("fragment shader boom");
+        }
 
         val programId: Int = glCreateProgram()
+        glError = glGetError()
+        if (glError != GL_NO_ERROR) {
+            throw RuntimeException("Failed to create program $fragmentShader, $vertexShader: ${GLU.gluErrorString(glError)}");
+        }
+
         glAttachShader(programId, iVShader)
         glAttachShader(programId, iFShader)
         glLinkProgram(programId)
+        glError = glGetError()
+        if (glError != GL_NO_ERROR) {
+            throw RuntimeException(
+                "Failed to link program: " +
+                        "glGetProgramInfoLog ${glGetProgramInfoLog(programId)} " +
+                        "glError $glError " +
+                        "glErrorMessage ${GLU.gluErrorString(glError)}"
+            )
+        }
 
         val link = IntArray(1)
         glGetProgramiv(programId, GL_LINK_STATUS, link, 0)
@@ -88,6 +115,7 @@ class Shader(vertexSource: String, fragmentSource: String) {
     }
 
     private fun loadShader(shaderType: Int, source: String): Int {
+        Log.d("Shaded", Thread.currentThread().name)
         val shader = glCreateShader(shaderType)
         if (shader != GL_FALSE) {
             glShaderSource(shader, source)

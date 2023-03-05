@@ -1,12 +1,18 @@
 package com.feresr.shaded
 
 import android.graphics.Bitmap
-import android.opengl.GLES10.GL_COLOR_BUFFER_BIT
+import android.graphics.Rect
+import android.opengl.GLES10.GL_DEPTH_BUFFER_BIT
 import android.opengl.GLES10.glClearColor
-import android.opengl.GLES10.glViewport
+import android.opengl.GLES10.glGetError
+import android.opengl.GLES20
+import android.opengl.GLES20.GL_COLOR_BUFFER_BIT
+import android.opengl.GLES20.glClear
+import android.opengl.GLES20.glViewport
 import android.opengl.GLES30.GL_FRAMEBUFFER
 import android.opengl.GLES30.glBindFramebuffer
-import android.opengl.GLES30.glClear
+import android.opengl.GLU
+import android.view.SurfaceView
 import com.feresr.shaded.opengl.FrameBuffer
 import com.feresr.shaded.opengl.Texture
 
@@ -15,43 +21,48 @@ import com.feresr.shaded.opengl.Texture
  * from [originalTexture]
  */
 internal class PingPongRenderer(private val defaultFilter: Filter) {
+    private val placeholders by lazy { Array(3) { Texture() } }
 
-    private val originalTexture: Texture = Texture()
+    private val originalTexture by lazy { placeholders[0]}
+    private val textures by lazy { arrayListOf(placeholders[1], placeholders[2]) }
+    private val frameBuffers by lazy { Array(2) { FrameBuffer() } }
 
-    private val textures = Array(2) { Texture(DEFAULT_TEXTURE_SIZE, DEFAULT_TEXTURE_SIZE) }
-    private val frameBuffers = Array(2) { FrameBuffer() }
-
-    init {
-        frameBuffers[0].setColorAttachment(textures[1])
-        frameBuffers[1].setColorAttachment(textures[0])
-    }
+    private val layer by lazy { Layer() }
 
     /**
      * Renders all filters to a texture with the dimensions specified in its constructor
      */
-    fun render(target: Bitmap, filters: List<Filter>): Bitmap {
+    fun render(target: SurfaceView, filters: Collection<Filter>, rect: Rect? = null) {
+        layer.bind()
         textures.forEach { it.resize(target.width, target.height) }
-        glViewport(0, 0, target.width, target.height)
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f)
+        frameBuffers[0].setColorAttachment(textures[1])
+        frameBuffers[1].setColorAttachment(textures[0])
+        // Set scissor rectangle if provided
+        //if (rect != null) glScissor(rect.left, rect.top, rect.width(), rect.height())
 
-        // Write original image (no filters)
-        originalTexture.bind() // read from
-        var latestFBO: FrameBuffer = frameBuffers[1].apply { bind() } // write to
-        defaultFilter.render()
-
+        var readFrom: Texture = originalTexture
+        readFrom.bind()
         // Render filters
         for ((i, filter) in filters.withIndex()) {
-            //read from
-            textures[i % 2].bind()
-            //write to
-            latestFBO = frameBuffers[i % 2].apply { bind() }
-            glClear(GL_COLOR_BUFFER_BIT)
+            //glViewport(0, 0, target.width, target.height)
+            // Select FBO to render to
+            val renderTo = frameBuffers[i % 2]
+            renderTo.bind()
             filter.render()
+            readFrom = renderTo.colorAttachment!!
+            readFrom.bind()
         }
 
+        glViewport(0, 0, target.width, target.height)
+        // write to screen (fbo: 0)
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
-
-        return latestFBO.copyInto(target)
+        glClearColor(1.0f, 0.0f, 0.0f, 1.0f)
+        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+        defaultFilter.render()
+        val glError = glGetError()
+        if (glError != GLES20.GL_NO_ERROR) {
+            throw RuntimeException("Failed to initialise filter: ${GLU.gluErrorString(glError)}");
+        }
     }
 
     fun delete() {
@@ -67,9 +78,5 @@ internal class PingPongRenderer(private val defaultFilter: Filter) {
      */
     fun setData(bitmap: Bitmap) {
         originalTexture.setData(bitmap)
-    }
-
-    companion object {
-        const val DEFAULT_TEXTURE_SIZE = 10
     }
 }

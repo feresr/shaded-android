@@ -1,44 +1,43 @@
 #version 300 es
 precision mediump float;
-in vec2 v_texcoord;
 
 uniform sampler2D tex_sampler;
-uniform vec2 blurRadius;
 
-out vec4 FragColor;
+// blur amount
+uniform float radius;
+// vertical or horizontal
+uniform vec2 direction;
+uniform vec2 resolution;
 
-float rand(in vec2 co) {
-    float a = 12.9898;
-    float b = 78.233;
-    float c = 43758.5453;
-    float dt = dot(co.xy, vec2(a, b));
-    float sn = mod(dt, 3.14);
-    return fract(sin(sn) * c);
+in vec2 v_texcoord;
+out vec4 FragmentColor;
+
+vec4 blur13(sampler2D image, vec2 uv, vec2 resolution, vec2 direction) {
+    vec4 color = vec4(0.0);
+    vec2 off1 = vec2(1.411764705882353) * direction;
+    vec2 off2 = vec2(3.2941176470588234) * direction;
+    vec2 off3 = vec2(5.176470588235294) * direction;
+    color += texture(image, uv) * 0.1964825501511404;
+    color += texture(image, uv + (off1 / resolution)) * 0.2969069646728344;
+    color += texture(image, uv - (off1 / resolution)) * 0.2969069646728344;
+    color += texture(image, uv + (off2 / resolution)) * 0.09447039785044732;
+    color += texture(image, uv - (off2 / resolution)) * 0.09447039785044732;
+    color += texture(image, uv + (off3 / resolution)) * 0.010381362401148057;
+    color += texture(image, uv - (off3 / resolution)) * 0.010381362401148057;
+    return color;
 }
-
-vec4 blur(in vec2 radius) {
-    vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
-    float total = 0.0;
-
-    float offset = rand(gl_FragCoord.xy);
-    float size = 10.0;
-    float start = -size + offset - 0.5;
-    float end = size + offset - 0.5;
-    for (float t = start; t <= end; t++) {
-        float percent = t / size;
-        float weight = 1.0 - abs(percent);
-        vec2 sampleVec = v_texcoord + radius * percent;
-        if (sampleVec.x <= 1.0 && sampleVec.y <= 1.0) {
-            vec4 sampleColor = texture(tex_sampler, sampleVec);
-            color += sampleColor * weight;
-            total += weight;
-        }
-    }
-
-    color /= total;
+vec4 blur9(sampler2D image, vec2 uv, vec2 resolution, vec2 direction) {
+    vec4 color = vec4(0.0);
+    vec2 off1 = vec2(1.3846153846) * direction;
+    vec2 off2 = vec2(3.2307692308) * direction;
+    color += texture(image, uv) * 0.2270270270;
+    color += texture(image, uv + (off1 / resolution)) * 0.3162162162;
+    color += texture(image, uv - (off1 / resolution)) * 0.3162162162;
+    color += texture(image, uv + (off2 / resolution)) * 0.0702702703;
+    color += texture(image, uv - (off2 / resolution)) * 0.0702702703;
     return color;
 }
 
 void main() {
-    FragColor = blur(blurRadius);
+    FragmentColor = blur9(tex_sampler, v_texcoord, resolution, direction * radius);
 }
