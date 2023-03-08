@@ -9,7 +9,7 @@ class FilterContrast(context: Context) : Filter(context, R.raw.contrast) {
     private var contrast: Float = 0.5f
     private var location = 0
 
-    override fun updateUniforms(vararg value: Float) {
+    fun updateUniforms(vararg value: Float) {
         contrast = value[0]
     }
 

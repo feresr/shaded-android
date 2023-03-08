@@ -9,7 +9,7 @@ class FilterGrain(context: Context) : Filter(context, R.raw.grain) {
     private var location = 0
     private var grain: Float = 0f
 
-    override fun updateUniforms(vararg value: Float) {
+    fun updateUniforms(vararg value: Float) {
         grain = value[0]
     }
 

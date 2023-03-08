@@ -7,6 +7,8 @@ import android.opengl.GLES20.glUniform2f
 import android.opengl.GLES20.glUniform3f
 import android.opengl.GLES20.glUniform3fv
 import android.opengl.GLES20.glUniform4f
+import android.opengl.GLES20.glUniformMatrix2fv
+import android.opengl.GLES20.glUniformMatrix3fv
 import android.opengl.GLES20.glUniformMatrix4fv
 import android.opengl.GLES30.GL_COMPILE_STATUS
 import android.opengl.GLES30.GL_FRAGMENT_SHADER
@@ -56,6 +58,12 @@ class Shader(vertexSource: String, fragmentSource: String) {
 
     fun setMat4(location: Int, mat: FloatArray, transpose: Boolean = false) {
         glUniformMatrix4fv(location, 1, transpose, mat, 0)
+    }
+    fun setMat2(location: Int, mat: FloatArray, transpose: Boolean = false) {
+        glUniformMatrix2fv(location, 1, transpose, mat, 0)
+    }
+    fun setMat3(location: Int, mat: FloatArray, transpose: Boolean = false) {
+        glUniformMatrix3fv(location, 1, transpose, mat, 0)
     }
 
     fun delete() = glDeleteProgram(program)

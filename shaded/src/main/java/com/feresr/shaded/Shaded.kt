@@ -2,7 +2,6 @@ package com.feresr.shaded
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Rect
 import android.opengl.EGLSurface
 import android.opengl.GLES20.GL_BLEND
 import android.opengl.GLES20.GL_DEPTH_TEST
@@ -27,7 +26,8 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import kotlin.coroutines.CoroutineContext
 
-/* This class defines its own CoroutineContext with a SupervisorJob() and a single threaded
+/**
+ * This class defines its own CoroutineContext with a SupervisorJob() and a single threaded
  * dispatcher. This allows the class to be used independently of the caller scope.
  * Disposing the job [dispose] will take care of cancelling any ongoing GL tasks
  */
@@ -97,16 +97,24 @@ class Shaded(private val context: Context) {
     private val surfaceMap = mutableMapOf<SurfaceView, EGLSurface>()
     private fun setTarget(target: SurfaceView) {
         // todo?
-        val surface = surfaceMap.getOrPut(target) { core.createWindowSurface(target.holder.surface) }
+        val surface =
+            surfaceMap.getOrPut(target) { core.createWindowSurface(target.holder.surface) }
         core.makeCurrent(surface)
     }
 
-    fun render(target: SurfaceView, filters: Collection<Filter>, rect: Rect? = null) =
+    fun render(target: SurfaceView, filters: Collection<Filter>) {
         runBlocking(scope.coroutineContext) {
             setTarget(target)
-            previewPingPongRenderer.render(target, filters, rect)
+            previewPingPongRenderer.render(target, filters)
             core.swapBuffers(surfaceMap[target])
         }
+    }
+
+    fun getAsBitmap(bitmap: Bitmap, filters: Collection<Filter>) {
+        runBlocking(scope.coroutineContext) {
+            previewPingPongRenderer.getBitmap(bitmap, filters)
+        }
+    }
 
     fun dispose() {
         scope.cancel("Dispose called")

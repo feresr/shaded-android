@@ -11,10 +11,6 @@ class FilterBrightness(
     var brightness: Float = 0.5f
     private var location = 0
 
-    override fun updateUniforms(vararg value: Float) {
-        brightness = value[0]
-    }
-
     override fun bindUniforms() {
         super.bindUniforms()
         location = shader.getUniformLocation("brightness")

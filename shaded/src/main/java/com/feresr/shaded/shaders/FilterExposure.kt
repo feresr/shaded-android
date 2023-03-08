@@ -9,7 +9,7 @@ class FilterExposure(context: Context) : Filter(context, R.raw.exposure) {
     private var location = 0
     private var exposure: Float = 0.5f
 
-    override fun updateUniforms(vararg value: Float) {
+    fun updateUniforms(vararg value: Float) {
         exposure = value[0]
     }
 

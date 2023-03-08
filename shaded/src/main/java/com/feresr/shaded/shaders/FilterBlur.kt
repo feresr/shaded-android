@@ -28,10 +28,6 @@ class FilterBlur(
     var resolution = 0f to 0f
     var factor: Int = 1
 
-    // params(radius : Float, resolutionX: Float, resolutionY: Float)
-    override fun updateUniforms(vararg value: Float) {
-    }
-
     override fun getDownscaleFactor(): Int {
         return factor
     }

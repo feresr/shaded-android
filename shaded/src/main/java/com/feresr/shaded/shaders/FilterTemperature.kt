@@ -11,8 +11,7 @@ class FilterTemperature(context: Context) : Filter(context, R.raw.temperature) {
 
     private var tintLocation = 0
     private var tempLocation = 0
-
-    override fun updateUniforms(value: FloatArray) {
+    fun updateUniforms(value: FloatArray) {
         temperature = value[0]
         tint = value[1]
     }

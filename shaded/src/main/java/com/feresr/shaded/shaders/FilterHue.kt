@@ -9,7 +9,7 @@ class FilterHue(context: Context) : Filter(context, R.raw.hue) {
     private var hue = 0f
     private var location: Int = 0
 
-    override fun updateUniforms(vararg value: Float) {
+    fun updateUniforms(vararg value: Float) {
         hue = value[0]
     }
 

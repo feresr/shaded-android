@@ -1,24 +1,23 @@
 package com.feresr.shaded.shaders
 
 import android.content.Context
+import android.graphics.Matrix
+import androidx.core.graphics.values
 import com.feresr.shaded.Filter
 import com.feresr.shaded.R
 
-/**
- * For internal use, renders the final image to the default frame buffer object.
- */
-internal class ScreenFilter(context: Context) : Filter(context, vshader = R.raw.vertexscreen) {
+class FilterMatrix(context: Context) : Filter(context, vshader = R.raw.matrix) {
 
-    private var model: FloatArray = FloatArray(16)
-    private var camera: FloatArray = FloatArray(16)
-    private var projection: FloatArray = FloatArray(16)
+    var model: FloatArray = Matrix().values()
+    var camera: FloatArray = Matrix().values()
+    var projection: FloatArray = Matrix().values()
 
     private var modelLocation = 0
     private var camLocation = 0
     private var projLocation = 0
 
-    override fun updateUniforms(value: FloatArray) {
-        // no op
+    fun setModelMatrix(matrix: Matrix) {
+        this.model = matrix.values()
     }
 
     override fun bindUniforms() {
@@ -30,9 +29,9 @@ internal class ScreenFilter(context: Context) : Filter(context, vshader = R.raw.
 
     override fun uploadUniforms() {
         super.uploadUniforms()
-        shader.setMat4(modelLocation, model)
-        shader.setMat4(camLocation, camera)
-        shader.setMat4(projLocation, projection)
+        shader.setMat3(modelLocation, model)
+        shader.setMat3(camLocation, camera)
+        shader.setMat3(projLocation, projection)
     }
 
 }

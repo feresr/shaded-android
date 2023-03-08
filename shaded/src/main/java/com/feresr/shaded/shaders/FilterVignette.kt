@@ -13,7 +13,7 @@ class FilterVignette(context: Context) : Filter(context, R.raw.vignette) {
     private var vignetteStart: Int = 0
     private var vignetteEnd: Int = 0
 
-    override fun updateUniforms(vararg value: Float) {
+    fun updateUniforms(vararg value: Float) {
         config.start = value.elementAtOrNull(1) ?: 0f
         config.end = value[0]
         val centerX = value.elementAtOrNull(2) ?: 0.5f
@@ -38,7 +38,7 @@ class FilterVignette(context: Context) : Filter(context, R.raw.vignette) {
         shader.setFloat(vignetteEnd, config.end)
         shader.setFloat2(vignetteCenter, config.center.first, config.center.second)
         shader.setFloat3(
-            vignetteCenter, config.vignetteColorR,
+            vignetteColor, config.vignetteColorR,
             config.vignetteColorG,
             config.vignetteColorB
         )

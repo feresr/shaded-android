@@ -11,7 +11,7 @@ class FilterSaturation(context: Context) : Filter(context, R.raw.saturation) {
     private var saturation: Float = 1.0f
     private var location = 0
 
-    override fun updateUniforms(value: FloatArray) {
+    fun updateUniforms(value: FloatArray) {
         saturation = value[0]
     }
 

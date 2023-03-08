@@ -9,7 +9,7 @@ class FilterSharpen(context: Context) : Filter(context, R.raw.sharpen) {
     private var location = 0
     private var sharpen: Float = 1.0f
 
-    override fun updateUniforms(value: FloatArray) {
+    fun updateUniforms(value: FloatArray) {
         sharpen = value[0]
     }
 

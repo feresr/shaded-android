@@ -9,7 +9,7 @@ class FilterFrame(context: Context) : Filter(context, vshader = R.raw.frame) {
     private var adjust: Float = 0.0f
     private var location = 0
 
-    override fun updateUniforms(value: FloatArray) {
+    fun updateUniforms(value: FloatArray) {
         adjust = value[0]
     }
 

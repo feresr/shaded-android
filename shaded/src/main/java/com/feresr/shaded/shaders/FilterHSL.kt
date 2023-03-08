@@ -18,7 +18,7 @@ class FilterHSL(context: Context) : Filter(context, R.raw.hsl) {
         0f, 0f, 0f          // FUCHSIA
     )
 
-    override fun updateUniforms(value: FloatArray) {
+    fun updateUniforms(value: FloatArray) {
         value.copyInto(values)
     }
 

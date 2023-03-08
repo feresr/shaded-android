@@ -9,7 +9,7 @@ class FilterInverse(context: Context) : Filter(context, R.raw.inverse) {
     private var location: Int = 0
     private var alpha: Float = 0.0f
 
-    override fun updateUniforms(vararg value: Float) {
+    fun updateUniforms(vararg value: Float) {
         alpha = value[0]
     }
 

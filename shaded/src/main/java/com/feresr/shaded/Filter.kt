@@ -44,7 +44,6 @@ open class Filter(
         }
     }
 
-    open fun updateUniforms(vararg value: Float) {}
 
     protected open fun bindUniforms() {
         //no op

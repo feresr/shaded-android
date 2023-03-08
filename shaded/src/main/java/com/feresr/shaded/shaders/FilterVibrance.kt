@@ -9,7 +9,7 @@ class FilterVibrance(context: Context) : Filter(context, R.raw.vibrance) {
     private var location = 0
     private var vibrance: Float = 0.5f
 
-    override fun updateUniforms(value: FloatArray) {
+    fun updateUniforms(value: FloatArray) {
         vibrance = value[0]
     }
 

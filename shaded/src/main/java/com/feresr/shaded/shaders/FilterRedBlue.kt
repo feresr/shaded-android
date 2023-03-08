@@ -8,7 +8,7 @@ class FilterRedBlue(context: Context) : Filter(context, fshader = R.raw.redblue)
 
     private var adjust: Float = 0.0f
     private var location = 0
-    override fun updateUniforms(value: FloatArray) {
+    fun updateUniforms(value: FloatArray) {
         adjust = value[0]
     }
 

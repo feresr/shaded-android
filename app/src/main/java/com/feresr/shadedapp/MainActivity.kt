@@ -18,9 +18,12 @@ import com.feresr.shaded.R.drawable.watch
 import com.feresr.shaded.Shaded
 import com.feresr.shaded.shaders.Direction
 import com.feresr.shaded.shaders.FilterBlur
+import com.feresr.shaded.shaders.FilterMatrix
 import kotlinx.android.synthetic.main.activity_main.addFilterButton
+import kotlinx.android.synthetic.main.activity_main.bitmapPreview
 import kotlinx.android.synthetic.main.activity_main.changeBitmapButton
 import kotlinx.android.synthetic.main.activity_main.changeTargetButton
+import kotlinx.android.synthetic.main.activity_main.getBitmapButton
 import kotlinx.android.synthetic.main.activity_main.image1
 import kotlinx.android.synthetic.main.activity_main.image2
 import kotlinx.android.synthetic.main.activity_main.removeFilterButton
@@ -31,9 +34,10 @@ class MainActivity : AppCompatActivity(), OnSeekBarChangeListener, SurfaceHolder
     private val shaded: Shaded = Shaded(this)
     private val blurh = FilterBlur(this, Direction.HORIZONTAL)
     private val blurv = FilterBlur(this, Direction.VERTICAL)
+    private val filterMatrix = FilterMatrix(this)
 
     private val bitmaps = arrayOf(rrr, watch, tv, ducks, square)
-    private val filters = mutableListOf<Filter>()
+    private val filters = mutableListOf<Filter>(filterMatrix)
     private var currentBitmap = 0
 
     private lateinit var selectedTarget: SurfaceView
@@ -58,7 +62,6 @@ class MainActivity : AppCompatActivity(), OnSeekBarChangeListener, SurfaceHolder
         shaded.render(
             selectedTarget,
             filters,
-            Rect(0, 0, selectedTarget.width, selectedTarget.height)
         )
     }
 
@@ -66,7 +69,15 @@ class MainActivity : AppCompatActivity(), OnSeekBarChangeListener, SurfaceHolder
         super.onStart()
         removeFilterButton.setOnClickListener {
             filters.clear()
-            shaded.render(selectedTarget, emptyList())
+            filters.add(filterMatrix)
+            shaded.render(selectedTarget, filters)
+        }
+        getBitmapButton.setOnClickListener {
+            val bitmap = Bitmap.createBitmap(500, 500, Bitmap.Config.ARGB_8888)
+//            blurh.resolution = 500f to 500f
+//            blurv.resolution = 500f to 500f
+            shaded.getAsBitmap(bitmap, filters)
+            bitmapPreview.setImageBitmap(bitmap)
         }
         changeBitmapButton.setOnClickListener { changeBitmap() }
         addFilterButton.setOnClickListener {
@@ -75,7 +86,6 @@ class MainActivity : AppCompatActivity(), OnSeekBarChangeListener, SurfaceHolder
             shaded.render(
                 selectedTarget,
                 filters,
-                Rect(0, 0, selectedTarget.width, selectedTarget.height)
             )
         }
         changeTargetButton.setOnClickListener {
@@ -130,6 +140,7 @@ class MainActivity : AppCompatActivity(), OnSeekBarChangeListener, SurfaceHolder
 
     override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
         if (canvas == null) return
+        filterMatrix.model[2] = progress.toFloat() / 250f
         blurv.radius = progress.toFloat() / 10f
         val resolution = canvas!!.width.toFloat() to canvas!!.height.toFloat()
         blurv.resolution = resolution
@@ -138,7 +149,6 @@ class MainActivity : AppCompatActivity(), OnSeekBarChangeListener, SurfaceHolder
         shaded.render(
             selectedTarget,
             filters,
-            Rect(0, 0, selectedTarget.width, selectedTarget.height)
         )
     }
 
